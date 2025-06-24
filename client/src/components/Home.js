@@ -49,7 +49,7 @@ function Home() {
             <div key={i}><Skeleton height={150} /></div>
           ))
         ) : filteredItems.map(item => (
-          <Link to={/portfolio/${item.id}} key={item.id}>
+          <Link to={`/portfolio/${item.id}`} key={item.id}>
             <div>
               <img src={item.image_url} alt={item.title} />
               <h3>{item.title}</h3>
