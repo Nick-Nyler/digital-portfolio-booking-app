@@ -14,24 +14,24 @@ function CreatorDashboard() {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Your Portfolio Items</h2>
-      <ul className="space-y-4">
+    <div className="dashboard-container">
+      <h2>Your Portfolio Items</h2>
+      <ul>
         {portfolioItems.map(item => (
-          <li key={item.id} className="bg-white p-4 rounded shadow">
+          <li key={item.id}>
             <h3>{item.title}</h3>
-            <button className="bg-blue-500 text-white px-2 py-1 rounded mr-2">Edit</button>
-            <button className="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+            <button className="edit-btn">Edit</button>
+            <button className="delete-btn">Delete</button>
           </li>
         ))}
       </ul>
-      <h2 className="text-2xl font-bold mt-6 mb-4">Your Bookings</h2>
-      <ul className="space-y-4">
+      <h2>Your Bookings</h2>
+      <ul>
         {bookings.map(booking => (
-          <li key={booking.id} className="bg-white p-4 rounded shadow">
+          <li key={booking.id}>
             <p>Date: {booking.date}, Time: {booking.time}, Status: {booking.status}</p>
-            <button className="bg-green-500 text-white px-2 py-1 rounded mr-2">Accept</button>
-            <button className="bg-red-500 text-white px-2 py-1 rounded">Decline</button>
+            <button className="accept-btn">Accept</button>
+            <button className="decline-btn">Decline</button>
           </li>
         ))}
       </ul>
