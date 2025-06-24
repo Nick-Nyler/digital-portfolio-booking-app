@@ -3,15 +3,26 @@ import React, { useEffect, useState } from 'react';
 function CreatorDashboard() {
   const [portfolioItems, setPortfolioItems] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5555/portfolio-items')
-      .then(response => response.json())
-      .then(data => setPortfolioItems(data));
-    fetch('http://localhost:5555/bookings')
-      .then(response => response.json())
-      .then(data => setBookings(data));
+    setLoading(true);
+    Promise.all([
+      fetch('http://localhost:5555/portfolio-items'),
+      fetch('http://localhost:5555/bookings')
+    ])
+      .then(([itemsResponse, bookingsResponse]) =>
+        Promise.all([itemsResponse.json(), bookingsResponse.json()])
+      )
+      .then(([itemsData, bookingsData]) => {
+        setPortfolioItems(itemsData);
+        setBookings(bookingsData);
+      })
+      .catch(error => console.error('Fetch error:', error))
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) return <div className="dashboard-container"><p>Loading...</p></div>;
 
   return (
     <div className="dashboard-container">

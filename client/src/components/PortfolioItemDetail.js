@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import Skeleton from 'react-loading-skeleton';
 
 function PortfolioItemDetail() {
   const { id } = useParams();
   const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:5555/portfolio-items/${id}`)
+    setLoading(true);
+    fetch(http://localhost:5555/portfolio-items/${id})
       .then(response => response.json())
-      .then(data => setItem(data));
+      .then(data => setItem(data))
+      .catch(error => console.error('Fetch error:', error))
+      .finally(() => setLoading(false));
   }, [id]);
 
-  if (!item) return <div>Loading...</div>;
+  if (loading) return <div className="detail-container"><Skeleton height={400} /></div>;
+  if (!item) return <div className="detail-container">Item not found</div>;
 
   return (
     <div className="detail-container">
