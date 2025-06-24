@@ -1,12 +1,9 @@
-from flask_sqlalchemy import SQLAlchemy
+from config import db
 from sqlalchemy_serializer import SerializerMixin
-from sqlalchemy import MetaData
 from datetime import datetime
 
-db = SQLAlchemy()
-
 class User(db.Model, SerializerMixin):
-    tablename = 'users'
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -19,7 +16,7 @@ class User(db.Model, SerializerMixin):
     serialize_rules = ('-portfolio_items.user', '-bookings.user')
 
 class PortfolioItem(db.Model, SerializerMixin):
-    tablename = 'portfolio_items'
+    __tablename__ = 'portfolio_items'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     title = db.Column(db.String(100), nullable=False)
@@ -30,7 +27,7 @@ class PortfolioItem(db.Model, SerializerMixin):
     serialize_rules = ('-user.portfolio_items',)
 
 class Client(db.Model, SerializerMixin):
-    tablename = 'clients'
+    __tablename__ = 'clients'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -39,7 +36,7 @@ class Client(db.Model, SerializerMixin):
     serialize_rules = ('-bookings.client',)
 
 class Booking(db.Model, SerializerMixin):
-    tablename = 'bookings'
+    __tablename__ = 'bookings'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
