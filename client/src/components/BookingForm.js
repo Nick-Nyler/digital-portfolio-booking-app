@@ -27,7 +27,7 @@ function BookingForm() {
         toast.success('Booking submitted!');
         navigate('/booking/confirm', { state: values });
       })
-      .catch(error => toast.error(Error: ${error.message}));
+      .catch(error => toast.error(`Error: ${error.message}`));
   };
 
   return (

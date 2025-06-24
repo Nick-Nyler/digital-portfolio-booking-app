@@ -29,7 +29,7 @@ function Signup({ setIsAuthenticated }) {
         toast.success('Account created successfully!');
         navigate('/');
       })
-      .catch(error => toast.error(Error: ${error.message}));
+      .catch(error => toast.error(`Error: ${error.message}`));
   };
 
   return (
@@ -68,4 +68,3 @@ function Signup({ setIsAuthenticated }) {
 }
 
 export default Signup;
-

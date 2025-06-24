@@ -28,7 +28,7 @@ function Login({ setIsAuthenticated }) {
         toast.success('Logged in successfully!');
         navigate('/');
       })
-      .catch(error => toast.error(Error: ${error.message}));
+      .catch(error => toast.error(`Error: ${error.message}`));
   };
 
   return (
@@ -62,4 +62,3 @@ function Login({ setIsAuthenticated }) {
 }
 
 export default Login;
-

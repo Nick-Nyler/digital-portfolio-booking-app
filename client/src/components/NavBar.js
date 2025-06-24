@@ -10,7 +10,7 @@ function NavBar({ isAuthenticated, setIsAuthenticated }) {
   return (
     <nav>
       <div className="brand">
-        <span role="img" aria-label="art">:art:</span>
+        <span role="img" aria-label="art">🎨</span>
         <span>Artify</span>
       </div>
       <div>
@@ -34,4 +34,3 @@ function NavBar({ isAuthenticated, setIsAuthenticated }) {
 }
 
 export default NavBar;
-

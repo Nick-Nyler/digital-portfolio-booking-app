@@ -7,7 +7,7 @@ function ClientDashboard() {
   useEffect(() => {
     setLoading(true);
     fetch('http://localhost:5555/bookings/client', {
-      headers: { 'Authorization': Bearer ${localStorage.getItem('token')} }
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
       .then(response => response.json())
       .then(data => setBookings(data))
