@@ -8,6 +8,8 @@ class PortfolioItem(db.Model):
     description = db.Column(db.Text)
     category = db.Column(db.String(50))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    price = db.Column(db.Float, default=0.0)
+    rating = db.Column(db.Float, default=0.0)
 
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -17,6 +19,7 @@ class Booking(db.Model):
     status = db.Column(db.String(20), default='pending')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    review = db.Column(db.JSON)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)

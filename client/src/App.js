@@ -11,6 +11,8 @@ import Signup from './components/Signup';
 import CreatorDashboard from './components/CreatorDashboard';
 import ClientDashboard from './components/ClientDashboard';
 import Pricing from './components/Pricing';
+import Profile from './components/Profile';
+import Calendar from './components/Calendar';
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -44,6 +46,8 @@ function App() {
           <Route path="/booking/confirm" element={<BookingConfirm />} />
           <Route path="/creator-dashboard" element={<PrivateRoute><CreatorDashboard /></PrivateRoute>} />
           <Route path="/client-dashboard" element={<PrivateRoute><ClientDashboard /></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+          <Route path="/calendar" element={<PrivateRoute><Calendar /></PrivateRoute>} />
         </Routes>
       </motion.div>
       <footer className="bg-gray-800 text-center py-4 mt-6">

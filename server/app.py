@@ -24,6 +24,37 @@ class PortfolioItemResource(Resource):
         return [{"id": item.id, "title": item.title, "image_url": item.image_url, "description": item.description, "category": item.category} for item in items]
 
     @jwt_required()
+    def post(self):
+        data = request.get_json()
+        if not data.get('user_id'):
+            data['user_id'] = get_jwt_identity()
+        new_item = PortfolioItem(title=data['title'], image_url=data['image_url'], description=data.get('description'), category=data.get('category'), user_id=data['user_id'])
+        try:
+            db.session.add(new_item)
+            db.session.commit()
+            return {"message": "Item created", "id": new_item.id}, 201
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Creation failed: {str(e)}"}, 500
+
+    @jwt_required()
+    def put(self, id):
+        item = PortfolioItem.query.get_or_404(id)
+        if item.user_id != get_jwt_identity():
+            return {"message": "Unauthorized"}, 403
+        data = request.get_json()
+        try:
+            item.title = data.get('title', item.title)
+            item.image_url = data.get('image_url', item.image_url)
+            item.description = data.get('description', item.description)
+            item.category = data.get('category', item.category)
+            db.session.commit()
+            return {"message": "Item updated"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Update failed: {str(e)}"}, 500
+
+    @jwt_required()
     def delete(self, id):
         item = PortfolioItem.query.get_or_404(id)
         if item.user_id != get_jwt_identity():
@@ -78,6 +109,42 @@ class ClientBookingResource(Resource):
         bookings = Booking.query.filter_by(client_id=user_id).all()
         return [{"id": b.id, "date": b.date, "time": b.time, "status": b.status} for b in bookings]
 
+class UserResource(Resource):
+    @jwt_required()
+    def get(self):
+        user = User.query.get_or_404(get_jwt_identity())
+        return {"id": user.id, "username": user.username, "email": user.email}
+
+    @jwt_required()
+    def put(self):
+        user = User.query.get_or_404(get_jwt_identity())
+        data = request.get_json()
+        try:
+            user.email = data.get('email', user.email)
+            if data.get('password'):
+                user.set_password(data['password'])
+            db.session.commit()
+            return {"message": "Profile updated"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Update failed: {str(e)}"}, 500
+
+class ReviewResource(Resource):
+    @jwt_required()
+    def post(self, booking_id):
+        data = request.get_json()
+        booking = Booking.query.get_or_404(booking_id)
+        if booking.client_id != get_jwt_identity():
+            return {"message": "Unauthorized"}, 403
+        # Simple review storage (in practice, use a Review model)
+        booking.review = {"rating": data.get('rating'), "comment": data.get('comment')}
+        try:
+            db.session.commit()
+            return {"message": "Review added"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Review failed: {str(e)}"}, 500
+
 class AuthResource(Resource):
     def post(self):
         data = request.get_json()
@@ -90,6 +157,8 @@ class AuthResource(Resource):
 api.add_resource(PortfolioItemResource, '/portfolio-items', '/portfolio-items/<int:id>')
 api.add_resource(BookingResource, '/bookings', '/bookings/<int:id>')
 api.add_resource(ClientBookingResource, '/bookings/client')
+api.add_resource(UserResource, '/user')
+api.add_resource(ReviewResource, '/reviews/<int:booking_id>')
 api.add_resource(AuthResource, '/login')
 
 if __name__ == '__main__':
