@@ -1,6 +1,7 @@
 from config import db
 from sqlalchemy_serializer import SerializerMixin
 from datetime import datetime
+import bcrypt
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
@@ -15,8 +16,21 @@ class User(db.Model, SerializerMixin):
     bookings = db.relationship('Booking', backref='user', cascade='all, delete-orphan')
     serialize_rules = ('-portfolio_items.user', '-bookings.user')
 
+    @property
+    def password(self):
+        raise AttributeError("Password is write-only")
+
+    @password.setter
+    def password(self, plain_text):
+        self.password_hash = bcrypt.hashpw(plain_text.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    def check_password(self, password):
+        return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
+
+
 class PortfolioItem(db.Model, SerializerMixin):
     __tablename__ = 'portfolio_items'
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     title = db.Column(db.String(100), nullable=False)
@@ -24,6 +38,7 @@ class PortfolioItem(db.Model, SerializerMixin):
     image_url = db.Column(db.String(255), nullable=False)
     category = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     serialize_rules = ('-user.portfolio_items',)
 
 class Client(db.Model, SerializerMixin):
@@ -34,6 +49,18 @@ class Client(db.Model, SerializerMixin):
     phone = db.Column(db.String(20))
     bookings = db.relationship('Booking', backref='client', cascade='all, delete-orphan')
     serialize_rules = ('-bookings.client',)
+
+    @property
+    def password(self):
+        raise AttributeError("Password is write-only")
+
+    @password.setter
+    def password(self, plain_text):
+        self.password_hash = bcrypt.hashpw(plain_text.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    def check_password(self, password):
+        return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
+
 
 class Booking(db.Model, SerializerMixin):
     __tablename__ = 'bookings'

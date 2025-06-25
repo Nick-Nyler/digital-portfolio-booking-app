@@ -11,6 +11,66 @@ def home():
     return {"message": "Welcome to the Digital Portfolio Booking API"}, 200
 
 
+
+
+@app.route('/signup/user', methods=['POST'])
+def signup_user():
+    data = request.get_json()
+    try:
+        new_user = User(
+            username=data['username'],
+            email=data['email'],
+            bio=data.get('bio'),
+            profile_pic_url=data.get('profile_pic_url')
+        )
+        new_user.password = data['password']
+        db.session.add(new_user)
+        db.session.commit()
+        return new_user.to_dict(), 201
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}, 400
+
+@app.route('/signup/client', methods=['POST'])
+def signup_client():
+    data = request.get_json()
+    try:
+        new_client = Client(
+            name=data['name'],
+            email=data['email'],
+            phone=data.get('phone')
+        )
+        new_client.password = data['password']
+        db.session.add(new_client)
+        db.session.commit()
+        return new_client.to_dict(), 201
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}, 400
+
+# ------------------- LOGIN -------------------
+
+@app.route('/login/user', methods=['POST'])
+def login_user():
+    data = request.get_json()
+    user = User.query.filter_by(email=data['email']).first()
+    if user and user.check_password(data['password']):
+        return user.to_dict(), 200
+    return {"error": "Invalid email or password"}, 401
+
+@app.route('/login/client', methods=['POST'])
+def login_client():
+    data = request.get_json()
+    client = Client.query.filter_by(email=data['email']).first()
+    if client and client.check_password(data['password']):
+        return client.to_dict(), 200
+    return {"error": "Invalid email or password"}, 401
+
+
+
+
+
+
 class PortfolioItemsResource(Resource):
     def get(self):
         portfolio_items = PortfolioItem.query.all()
