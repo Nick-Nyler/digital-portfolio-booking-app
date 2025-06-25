@@ -11,6 +11,13 @@ def home():
     return {"message": "Welcome to the Digital Portfolio Booking API"}, 200
 
 
+
+
+
+
+
+
+
 class PortfolioItemsResource(Resource):
     def get(self):
         portfolio_items = PortfolioItem.query.all()
