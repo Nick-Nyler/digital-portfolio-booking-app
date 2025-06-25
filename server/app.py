@@ -5,12 +5,21 @@ from flask_restful import Api, Resource
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_mail import Mail, Message
 from config import app, db
 from models import PortfolioItem, Booking, User
 
 api = Api(app)
 jwt = JWTManager(app)
 CORS(app)
+mail = Mail(app)
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'your-email@gmail.com'  # Replace with your email
+app.config['MAIL_PASSWORD'] = 'your-app-password'     # Use App Password for Gmail
+app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'
 
 class PortfolioItemResource(Resource):
     @jwt_required()
@@ -19,16 +28,16 @@ class PortfolioItemResource(Resource):
             item = PortfolioItem.query.get_or_404(id)
             if item.user_id != get_jwt_identity():
                 return {"message": "Unauthorized"}, 403
-            return {"id": item.id, "title": item.title, "image_url": item.image_url, "description": item.description, "category": item.category}
+            return {"id": item.id, "title": item.title, "image_url": item.image_url, "description": item.description, "category": item.category, "price": item.price, "rating": item.rating}
         items = PortfolioItem.query.filter_by(user_id=get_jwt_identity()).all()
-        return [{"id": item.id, "title": item.title, "image_url": item.image_url, "description": item.description, "category": item.category} for item in items]
+        return [{"id": item.id, "title": item.title, "image_url": item.image_url, "description": item.description, "category": item.category, "price": item.price, "rating": item.rating} for item in items]
 
     @jwt_required()
     def post(self):
         data = request.get_json()
         if not data.get('user_id'):
             data['user_id'] = get_jwt_identity()
-        new_item = PortfolioItem(title=data['title'], image_url=data['image_url'], description=data.get('description'), category=data.get('category'), user_id=data['user_id'])
+        new_item = PortfolioItem(title=data['title'], image_url=data['image_url'], description=data.get('description'), category=data.get('category'), price=data.get('price', 0.0), rating=data.get('rating', 0.0), user_id=data['user_id'])
         try:
             db.session.add(new_item)
             db.session.commit()
@@ -48,6 +57,8 @@ class PortfolioItemResource(Resource):
             item.image_url = data.get('image_url', item.image_url)
             item.description = data.get('description', item.description)
             item.category = data.get('category', item.category)
+            item.price = data.get('price', item.price)
+            item.rating = data.get('rating', item.rating)
             db.session.commit()
             return {"message": "Item updated"}, 200
         except Exception as e:
@@ -72,7 +83,7 @@ class BookingResource(Resource):
     def get(self):
         user_id = get_jwt_identity()
         bookings = Booking.query.filter_by(user_id=user_id).all()
-        return [{"id": b.id, "date": b.date, "time": b.time, "client_name": b.client_name, "status": b.status} for b in bookings]
+        return [{"id": b.id, "date": b.date, "time": b.time, "client_name": b.client_name, "status": b.status, "review": b.review} for b in bookings]
 
     @jwt_required()
     def post(self):
@@ -83,6 +94,10 @@ class BookingResource(Resource):
         try:
             db.session.add(new_booking)
             db.session.commit()
+            # Send email notification
+            msg = Message("New Booking on Artify", recipients=[User.query.get(new_booking.user_id).email])
+            msg.body = f"New booking from {new_booking.client_name} on {new_booking.date} at {new_booking.time}."
+            mail.send(msg)
             return {"message": "Booking created", "id": new_booking.id}, 201
         except Exception as e:
             db.session.rollback()
@@ -97,6 +112,10 @@ class BookingResource(Resource):
         try:
             booking.status = data.get('status', booking.status)
             db.session.commit()
+            # Send email notification for status change
+            msg = Message("Booking Update on Artify", recipients=[User.query.get(booking.client_id).email])
+            msg.body = f"Your booking on {booking.date} at {booking.time} is now {booking.status}."
+            mail.send(msg)
             return {"message": "Booking updated", "status": booking.status}, 200
         except Exception as e:
             db.session.rollback()
@@ -107,7 +126,7 @@ class ClientBookingResource(Resource):
     def get(self):
         user_id = get_jwt_identity()
         bookings = Booking.query.filter_by(client_id=user_id).all()
-        return [{"id": b.id, "date": b.date, "time": b.time, "status": b.status} for b in bookings]
+        return [{"id": b.id, "date": b.date, "time": b.time, "status": b.status, "review": b.review} for b in bookings]
 
 class UserResource(Resource):
     @jwt_required()
@@ -136,7 +155,6 @@ class ReviewResource(Resource):
         booking = Booking.query.get_or_404(booking_id)
         if booking.client_id != get_jwt_identity():
             return {"message": "Unauthorized"}, 403
-        # Simple review storage (in practice, use a Review model)
         booking.review = {"rating": data.get('rating'), "comment": data.get('comment')}
         try:
             db.session.commit()
