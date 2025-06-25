@@ -10,17 +10,20 @@ import BookingConfirm from './components/BookingConfirm';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import ClientDashboard from './components/ClientDashboard';
+import Pricing from './components/Pricing';
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/signin" />;
+  return token ? children : <Navigate to="/signin" replace />;
 };
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
   useEffect(() => {
-    setIsAuthenticated(!!localStorage.getItem('token'));
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+    if (!token) console.warn('No authentication token found');
   }, []);
 
   return (
@@ -29,7 +32,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/portfolio/:id" element={<PortfolioItemDetail />} />
-        <Route path="/pricing" element={<div>Pricing Page</div>} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/signin" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/signup" element={<Signup setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/booking" element={<BookingForm />} />
@@ -37,7 +40,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><CreatorDashboard /></PrivateRoute>} />
         <Route path="/client-dashboard" element={<PrivateRoute><ClientDashboard /></PrivateRoute>} />
       </Routes>
-      <footer><p>Contact: info@artify.com | © 2025 Artify</p></footer>
+      <footer><p>Contact: info@artify.com | © 2025 Artify | <a href="/pricing">Subscribe</a></p></footer>
     </Router>
   );
 }

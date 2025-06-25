@@ -1,66 +1,26 @@
-# seed.py
+from config import app, db
+from models import PortfolioItem, Booking, User
+from werkzeug.security import generate_password_hash
 
-from faker import Faker
-from models import User, PortfolioItem, Client, Booking, db
-from config import app
-from datetime import datetime, timedelta, time
+with app.app_context():
+    db.create_all()
 
-fake = Faker()
-
-def seed_database():
-    # Clear existing data
-    db.session.query(Booking).delete()
-    db.session.query(PortfolioItem).delete()
-    db.session.query(Client).delete()
-    db.session.query(User).delete()
-
-    # Seed User
-    user = User(
-        username="creator1",
-        email="creator1@example.com",
-        password="hashedpassword",
-        bio="Creative artist",
-        profile_pic_url="https://via.placeholder.com/150"
-    )
-    db.session.add(user)
+    # Seed Users
+    admin = User(username='admin', password=generate_password_hash('admin123'), email='admin@example.com')
+    creator = User(username='creator1', password=generate_password_hash('creator123'), email='creator1@example.com')
+    client = User(username='client1', password=generate_password_hash('client123'), email='client1@example.com')
+    db.session.add_all([admin, creator, client])
     db.session.commit()
 
-    # Seed PortfolioItems
-    for _ in range(3):
-        item = PortfolioItem(
-            user_id=user.id,
-            title=fake.sentence(),
-            description=fake.paragraph(),
-            image_url="https://via.placeholder.com/300",
-            category=fake.word()
-        )
-        db.session.add(item)
+    # Seed Portfolio Items
+    items = [
+        PortfolioItem(title='Abstract Painting', image_url='https://via.placeholder.com/150', description='A vibrant abstract piece', category='Painting', user_id=creator.id),
+        PortfolioItem(title='Nature Photo', image_url='https://via.placeholder.com/150', description='A serene landscape', category='Photography', user_id=creator.id)
+    ]
+    db.session.add_all(items)
     db.session.commit()
 
-    # Seed Client
-    client = Client(
-        name="John Doe",
-        email="john@example.com",
-        phone="123-456-7890"
-    )
-    db.session.add(client)
-    db.session.commit()
-
-    # Seed Booking
-    booking = Booking(
-        user_id=user.id,
-        client_id=client.id,
-        date=datetime.now().date() + timedelta(days=1),
-        time=time(hour=14, minute=0),
-        status="pending",
-        notes="Please confirm"
-    )
+    # Seed Bookings
+    booking = Booking(date='2025-06-26', time='14:00', client_name='John Doe', user_id=creator.id, client_id=client.id)
     db.session.add(booking)
     db.session.commit()
-
-    print("✅ Database seeded successfully!")
-
-# ✅ Main execution block with app context
-if __name__ == '__main__':
-    with app.app_context():
-        seed_database()

@@ -5,15 +5,15 @@ import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 
 const SignupSchema = Yup.object().shape({
-  username: Yup.string().required('Username is required'),
-  password: Yup.string().required('Password is required'),
-  email: Yup.string().email('Invalid email').required('Email is required'),
+  username: Yup.string().required('Required').min(3, 'Too short'),
+  password: Yup.string().required('Required').min(6, 'Too short'),
+  email: Yup.string().email('Invalid email').required('Required'),
 });
 
 function Signup({ setIsAuthenticated }) {
   const navigate = useNavigate();
 
-  const handleSubmit = (values) => {
+  const handleSubmit = (values, { setSubmitting }) => {
     fetch('http://localhost:5555/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -29,35 +29,36 @@ function Signup({ setIsAuthenticated }) {
         toast.success('Account created successfully!');
         navigate('/');
       })
-      .catch(error => toast.error(`Error: ${error.message}`));
+      .catch(error => toast.error(`Error: ${error.message}`))
+      .finally(() => setSubmitting(false));
   };
 
   return (
-    <div className="detail-container">
+    <div className="detail-container" role="form" aria-label="Signup Form">
       <h2>Sign Up</h2>
       <Formik
         initialValues={{ username: '', password: '', email: '' }}
         validationSchema={SignupSchema}
         onSubmit={handleSubmit}
       >
-        {({ isSubmitting }) => (
+        {({ isSubmitting, touched, errors }) => (
           <Form>
             <div>
               <label htmlFor="username">Username</label>
-              <Field type="text" name="username" className="input-field" />
+              <Field type="text" name="username" className="input-field" aria-invalid={touched.username && !!errors.username} />
               <ErrorMessage name="username" component="div" className="error" />
             </div>
             <div>
               <label htmlFor="email">Email</label>
-              <Field type="email" name="email" className="input-field" />
+              <Field type="email" name="email" className="input-field" aria-invalid={touched.email && !!errors.email} />
               <ErrorMessage name="email" component="div" className="error" />
             </div>
             <div>
               <label htmlFor="password">Password</label>
-              <Field type="password" name="password" className="input-field" />
+              <Field type="password" name="password" className="input-field" aria-invalid={touched.password && !!errors.password} />
               <ErrorMessage name="password" component="div" className="error" />
             </div>
-            <button type="submit" disabled={isSubmitting} className="submit-btn">
+            <button type="submit" disabled={isSubmitting} className="submit-btn" aria-label="Sign up">
               Sign Up
             </button>
           </Form>
