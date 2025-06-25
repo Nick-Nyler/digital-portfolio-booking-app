@@ -12,8 +12,8 @@ with app.app_context():
     db.session.commit()
 
     items = [
-        PortfolioItem(title='Abstract Canvas', image_url='https://via.placeholder.com/150', description='Bold abstract art', category='Painting', user_id=creator.id),
-        PortfolioItem(title='Forest Snapshot', image_url='https://via.placeholder.com/150', description='Nature photography', category='Photography', user_id=creator.id)
+        PortfolioItem(title='Abstract Canvas', image_url='https://via.placeholder.com/150', description='Bold abstract art', category='Painting', user_id=creator.id, price=50.0, rating=4.5),
+        PortfolioItem(title='Forest Snapshot', image_url='https://via.placeholder.com/150', description='Nature photography', category='Photography', user_id=creator.id, price=30.0, rating=4.0)
     ]
     db.session.add_all(items)
     db.session.commit()
