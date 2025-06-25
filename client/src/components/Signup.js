@@ -27,7 +27,7 @@ function Signup({ setIsAuthenticated }) {
     const endpoint = values.role === 'user' ? '/signup/user' : '/signup/client';
 
     const payload =
-      values.role === 'user'
+      values.role === 'user' 
         ? {
             username: values.username,
             email: values.email,
@@ -49,10 +49,10 @@ function Signup({ setIsAuthenticated }) {
         return response.json();
       })
       .then((data) => {
-        localStorage.setItem('token', data.token);
-        setIsAuthenticated(true);
+        // localStorage.setItem('token', data.token);
+        // setIsAuthenticated(true);
         toast.success('Account created successfully!');
-        navigate(values.role === 'user' ? '/dashboard' : '/client-dashboard');
+        navigate('/signin');
       })
       .catch((error) => toast.error(`Error: ${error.message}`))
       .finally(() => setSubmitting(false));

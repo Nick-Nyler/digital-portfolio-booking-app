@@ -1,9 +1,12 @@
 # server/app.py
 from flask import request, jsonify
 from config import app, db, api
+from flask_cors import CORS 
 from models import User, PortfolioItem, Client, Booking
 from flask_restful import Resource
 import secrets
+
+CORS(app) 
 
 @app.route('/')
 def home():

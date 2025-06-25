@@ -1,88 +1,84 @@
-# server/seed.py
+from config import db
+from sqlalchemy_serializer import SerializerMixin
+from datetime import datetime
+import bcrypt
 
-from config import app, db
-from models import User, Client, PortfolioItem, Booking
-from datetime import datetime, date, time
 
-with app.app_context():
-    print("🧹 Clearing old data...")
-    Booking.query.delete()
-    PortfolioItem.query.delete()
-    Client.query.delete()
-    User.query.delete()
+class User(db.Model, SerializerMixin):
+    __tablename__ = 'users'
 
-    print("👤 Creating users...")
-    user1 = User(
-        username='moreenk',
-        email='moreen@example.com',
-        bio='Passionate graphic designer.',
-        profile_pic_url='https://i.pravatar.cc/150?img=5'
-    )
-    user1.password = 'password123'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    _password_hash = db.Column(db.String(128), nullable=False)
+    bio = db.Column(db.Text)
+    profile_pic_url = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    user2 = User(
-        username='brianotieno',
-        email='brian@example.com',
-        bio='Freelance web developer.',
-        profile_pic_url='https://i.pravatar.cc/150?img=6'
-    )
-    user2.password = 'securepass456'
+    portfolio_items = db.relationship('PortfolioItem', backref='user', cascade='all, delete-orphan')
+    bookings = db.relationship('Booking', backref='user', cascade='all, delete-orphan')
 
-    print("👥 Creating clients...")
-    client1 = Client(
-        name='Lilian Wambui',
-        email='lilian@example.com'
-    )
-    client1.password = 'clientpass1'
+    serialize_rules = ('-portfolio_items.user', '-bookings.user')
 
-    client2 = Client(
-        name='James Karanja',
-        email='james@example.com'
-    )
-    client2.password = 'clientpass2'
+    @property
+    def password(self):
+        raise AttributeError("Password is write-only.")
 
-    print("🖼️ Creating portfolio items...")
-    portfolio1 = PortfolioItem(
-        user=user1,
-        title='Wedding Shoot',
-        description='Captured special moments at a wedding ceremony.',
-        image_url='https://source.unsplash.com/featured/?wedding',
-        category='Photography'
-    )
+    @password.setter
+    def password(self, plain_text):
+        self._password_hash = bcrypt.hashpw(plain_text.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    portfolio2 = PortfolioItem(
-        user=user2,
-        title='E-commerce Website',
-        description='Built a fully responsive e-commerce frontend.',
-        image_url='https://source.unsplash.com/featured/?website',
-        category='Web Development'
-    )
+    def check_password(self, password):
+        return bcrypt.checkpw(password.encode('utf-8'), self._password_hash.encode('utf-8'))
 
-    print("📅 Creating bookings...")
-    booking1 = Booking(
-        user=user1,
-        client=client1,
-        date=date.today(),
-        time=time(14, 0),
-        status='confirmed',
-        notes='Photo shoot at Arboretum.'
-    )
 
-    booking2 = Booking(
-        user=user2,
-        client=client2,
-        date=date.today(),
-        time=time(10, 30),
-        status='pending',
-        notes='Meeting to discuss web project.'
-    )
+class Client(db.Model, SerializerMixin):
+    __tablename__ = 'clients'
 
-    print("💾 Saving to database...")
-    db.session.add_all([
-        user1, user2,
-        client1, client2,
-        portfolio1, portfolio2,
-        booking1, booking2
-    ])
-    db.session.commit()
-    print("✅ Done seeding!")
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    _password_hash = db.Column(db.String(128), nullable=False)
+
+    bookings = db.relationship('Booking', backref='client', cascade='all, delete-orphan')
+    serialize_rules = ('-bookings.client',)
+
+    @property
+    def password(self):
+        raise AttributeError("Password is write-only.")
+
+    @password.setter
+    def password(self, plain_text):
+        self._password_hash = bcrypt.hashpw(plain_text.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    def check_password(self, password):
+        return bcrypt.checkpw(password.encode('utf-8'), self._password_hash.encode('utf-8'))
+    
+class PortfolioItem(db.Model, SerializerMixin):
+    __tablename__ = 'portfolio_items'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    image_url = db.Column(db.String(255), nullable=False)
+    category = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    serialize_rules = ('-user.portfolio_items',)
+
+
+class Booking(db.Model, SerializerMixin):
+    __tablename__ = 'bookings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey('clients.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    time = db.Column(db.Time, nullable=False)
+    status = db.Column(db.String(20), default='pending')
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    serialize_rules = ('-user.bookings', '-client.bookings',)
