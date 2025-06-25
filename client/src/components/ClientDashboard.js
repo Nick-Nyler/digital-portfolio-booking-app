@@ -1,24 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 function ClientDashboard() {
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: bookings = [], isLoading, error } = useQuery({
+    queryKey: ['clientBookings'],
+    queryFn: () => fetch('http://localhost:5555/bookings/client', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+    }).then(res => {
+      if (!res.ok) throw new Error('Failed to fetch client bookings');
+      return res.json();
+    }),
+    retry: 1,
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    fetch('http://localhost:5555/bookings/client', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-      .then(response => response.json())
-      .then(data => setBookings(data))
-      .catch(error => console.error('Fetch error:', error))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <div className="dashboard-container"><p>Loading...</p></div>;
+  if (isLoading) return <div className="dashboard-container"><p>Loading...</p></div>;
+  if (error) return <div className="dashboard-container">Error loading bookings: {error.message}</div>;
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" role="region" aria-label="Client Dashboard">
       <h2>Your Bookings</h2>
       <ul>
         {bookings.map(booking => (

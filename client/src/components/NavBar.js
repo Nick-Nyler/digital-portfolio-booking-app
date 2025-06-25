@@ -10,22 +10,22 @@ function NavBar({ isAuthenticated, setIsAuthenticated }) {
   return (
     <nav>
       <div className="brand">
-        <span role="img" aria-label="art">🎨</span>
+        <span className="sr-only">Artify Logo</span>
         <span>Artify</span>
       </div>
       <div>
-        <Link to="/">Explore</Link>
-        <Link to="/pricing">Pricing</Link>
+        <Link to="/" aria-label="Explore">Explore</Link>
+        <Link to="/pricing" aria-label="Pricing">Pricing</Link>
         {isAuthenticated ? (
           <>
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/client-dashboard">Client Dashboard</Link>
-            <button onClick={handleLogout}>Logout</button>
+            <Link to="/dashboard" aria-label="Dashboard">Dashboard</Link>
+            <Link to="/client-dashboard" aria-label="Client Dashboard">Client Dashboard</Link>
+            <button onClick={handleLogout} aria-label="Logout">Logout</button>
           </>
         ) : (
           <>
-            <Link to="/signin">Sign In</Link>
-            <Link to="/signup">Sign Up</Link>
+            <Link to="/signin" aria-label="Sign In">Sign In</Link>
+            <Link to="/signup" aria-label="Sign Up">Sign Up</Link>
           </>
         )}
       </div>
