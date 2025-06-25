@@ -12,10 +12,13 @@ function Home() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
 
-  const filteredItems = portfolioItems.filter(item =>
-    item.title.toLowerCase().includes(search.toLowerCase()) &&
-    (category === '' || item.category === category)
-  );
+  // Only filter if portfolioItems is an array
+  const filteredItems = Array.isArray(portfolioItems) 
+    ? portfolioItems.filter(item =>
+        item.title.toLowerCase().includes(search.toLowerCase()) &&
+        (category === '' || item.category === category)
+      )
+    : [];
 
   return (
     <div className="min-h-screen">
