@@ -11,11 +11,16 @@ const SignupSchema = Yup.object().shape({
   username: Yup.string().when('role', {
     is: 'user',
     then: (schema) => schema.required('Username is required'),
-    otherwise: (schema) => schema.strip(), // remove it if not used
+    otherwise: (schema) => schema.strip(),
   }),
   name: Yup.string().when('role', {
     is: 'client',
     then: (schema) => schema.required('Name is required'),
+    otherwise: (schema) => schema.strip(),
+  }),
+  phone: Yup.string().when('role', {
+    is: 'client',
+    then: (schema) => schema.required('Phone is required'),
     otherwise: (schema) => schema.strip(),
   }),
 });
@@ -27,7 +32,7 @@ function Signup({ setIsAuthenticated }) {
     const endpoint = values.role === 'user' ? '/signup/user' : '/signup/client';
 
     const payload =
-      values.role === 'user' 
+      values.role === 'user'
         ? {
             username: values.username,
             email: values.email,
@@ -37,6 +42,7 @@ function Signup({ setIsAuthenticated }) {
             name: values.name,
             email: values.email,
             password: values.password,
+            phone: values.phone,
           };
 
     fetch(`http://localhost:5000${endpoint}`, {
@@ -49,8 +55,8 @@ function Signup({ setIsAuthenticated }) {
         return response.json();
       })
       .then((data) => {
-        // localStorage.setItem('token', data.token);
-        // setIsAuthenticated(true);
+        localStorage.setItem('token', data.token);
+        setIsAuthenticated(true);
         toast.success('Account created successfully!');
         navigate('/signin');
       })
@@ -66,6 +72,7 @@ function Signup({ setIsAuthenticated }) {
           role: 'user',
           username: '',
           name: '',
+          phone: '',
           email: '',
           password: '',
         }}
@@ -99,11 +106,18 @@ function Signup({ setIsAuthenticated }) {
             )}
 
             {values.role === 'client' && (
-              <div>
-                <label htmlFor="name">Full Name</label>
-                <Field type="text" name="name" className="input-field" />
-                <ErrorMessage name="name" component="div" className="error" />
-              </div>
+              <>
+                <div>
+                  <label htmlFor="name">Full Name</label>
+                  <Field type="text" name="name" className="input-field" />
+                  <ErrorMessage name="name" component="div" className="error" />
+                </div>
+                <div>
+                  <label htmlFor="phone">Phone</label>
+                  <Field type="text" name="phone" className="input-field" />
+                  <ErrorMessage name="phone" component="div" className="error" />
+                </div>
+              </>
             )}
 
             <div>
