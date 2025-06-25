@@ -8,8 +8,8 @@ function CreatorDashboard() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch('http://localhost:5555/portfolio-items'),
-      fetch('http://localhost:5555/bookings')
+      fetch('http://localhost:5000/portfolio-items'),
+      fetch('http://localhost:5000/bookings')
     ])
       .then(([itemsResponse, bookingsResponse]) =>
         Promise.all([itemsResponse.json(), bookingsResponse.json()])

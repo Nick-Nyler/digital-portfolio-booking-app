@@ -1,66 +1,84 @@
-# seed.py
+# server/seed.py
+from config import app, db
+from models import User, Client, PortfolioItem, Booking
+from datetime import datetime, time, date
 
-from faker import Faker
-from models import User, PortfolioItem, Client, Booking, db
-from config import app
-from datetime import datetime, timedelta, time
+with app.app_context():
+    print("🧹 Clearing existing data...")
+    Booking.query.delete()
+    PortfolioItem.query.delete()
+    Client.query.delete()
+    User.query.delete()
 
-fake = Faker()
-
-def seed_database():
-    # Clear existing data
-    db.session.query(Booking).delete()
-    db.session.query(PortfolioItem).delete()
-    db.session.query(Client).delete()
-    db.session.query(User).delete()
-
-    # Seed User
-    user = User(
-        username="creator1",
-        email="creator1@example.com",
-        password="hashedpassword",
-        bio="Creative artist",
-        profile_pic_url="https://via.placeholder.com/150"
+    print("👤 Seeding users...")
+    user1 = User(
+        username="creative_moe",
+        email="moe@example.com",
+        bio="I love photography and digital design.",
+        profile_pic_url="https://i.pravatar.cc/150?img=3"
     )
-    db.session.add(user)
-    db.session.commit()
+    user1.password = "password123"
 
-    # Seed PortfolioItems
-    for _ in range(3):
-        item = PortfolioItem(
-            user_id=user.id,
-            title=fake.sentence(),
-            description=fake.paragraph(),
-            image_url="https://via.placeholder.com/300",
-            category=fake.word()
-        )
-        db.session.add(item)
-    db.session.commit()
-
-    # Seed Client
-    client = Client(
-        name="John Doe",
-        email="john@example.com",
-        phone="123-456-7890"
+    user2 = User(
+        username="dev_daisy",
+        email="daisy@example.com",
+        bio="Web designer and front-end dev.",
+        profile_pic_url="https://i.pravatar.cc/150?img=4"
     )
-    db.session.add(client)
-    db.session.commit()
+    user2.password = "securepass456"
 
-    # Seed Booking
-    booking = Booking(
-        user_id=user.id,
-        client_id=client.id,
-        date=datetime.now().date() + timedelta(days=1),
-        time=time(hour=14, minute=0),
+    print("👥 Seeding clients...")
+    client1 = Client(
+        name="Lilian Wambui",
+        email="lilian@example.com",
+        phone="0712345678"
+    )
+    client1.password = "client123"
+
+    client2 = Client(
+        name="Brian Otieno",
+        email="brian@example.com",
+        phone="0722233344"
+    )
+    client2.password = "clientpass"
+
+    print("🖼️ Seeding portfolio items...")
+    portfolio1 = PortfolioItem(
+        user=user1,
+        title="Sunset Photography",
+        description="A collection of my best sunset shots.",
+        image_url="https://source.unsplash.com/featured/?sunset",
+        category="Photography"
+    )
+
+    portfolio2 = PortfolioItem(
+        user=user2,
+        title="Minimalist Web Designs",
+        description="My favorite clean and simple landing pages.",
+        image_url="https://source.unsplash.com/featured/?webdesign",
+        category="Design"
+    )
+
+    print("📅 Seeding bookings...")
+    booking1 = Booking(
+        user=user1,
+        client=client1,
+        date=date.today(),
+        time=time(15, 0),
+        status="confirmed",
+        notes="Outdoor shoot at Karura Forest"
+    )
+
+    booking2 = Booking(
+        user=user2,
+        client=client2,
+        date=date.today(),
+        time=time(11, 0),
         status="pending",
-        notes="Please confirm"
+        notes="Zoom call to discuss the project brief"
     )
-    db.session.add(booking)
+
+    print("💾 Saving to database...")
+    db.session.add_all([user1, user2, client1, client2, portfolio1, portfolio2, booking1, booking2])
     db.session.commit()
-
-    print("✅ Database seeded successfully!")
-
-# ✅ Main execution block with app context
-if __name__ == '__main__':
-    with app.app_context():
-        seed_database()
+    print("✅ Done seeding!")

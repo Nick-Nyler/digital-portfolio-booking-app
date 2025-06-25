@@ -9,7 +9,7 @@ function PortfolioItemDetail() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:5555/portfolio-items/${id}`)
+    fetch(`http://localhost:5000/portfolio-items/${id}`)
       .then(response => response.json())
       .then(data => setItem(data))
       .catch(error => console.error('Fetch error:', error))

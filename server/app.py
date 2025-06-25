@@ -1,21 +1,27 @@
 # server/app.py
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from flask_migrate import Migrate
-from flask_restful import Api, Resource
+from flask import request, jsonify
 from config import app, db, api
 from models import User, PortfolioItem, Client, Booking
+from flask_restful import Resource
+import secrets
 
 @app.route('/')
 def home():
     return {"message": "Welcome to the Digital Portfolio Booking API"}, 200
 
-
-
+# ------------------- SIGN UP -------------------
 
 @app.route('/signup/user', methods=['POST'])
 def signup_user():
     data = request.get_json()
+
+    required = ['username', 'email', 'password']
+    if not all(field in data for field in required):
+        return {"error": "Username, email, and password are required."}, 400
+
+    if User.query.filter_by(email=data['email']).first():
+        return {"error": "Email already registered."}, 409
+
     try:
         new_user = User(
             username=data['username'],
@@ -26,14 +32,28 @@ def signup_user():
         new_user.password = data['password']
         db.session.add(new_user)
         db.session.commit()
-        return new_user.to_dict(), 201
+
+        return {
+            "token": secrets.token_hex(16),
+            "user": new_user.to_dict()
+        }, 201
+
     except Exception as e:
         db.session.rollback()
         return {"error": str(e)}, 400
 
+
 @app.route('/signup/client', methods=['POST'])
 def signup_client():
     data = request.get_json()
+
+    required = ['name', 'email', 'password']
+    if not all(field in data for field in required):
+        return {"error": "Name, email, and password are required."}, 400
+
+    if Client.query.filter_by(email=data['email']).first():
+        return {"error": "Email already registered."}, 409
+
     try:
         new_client = Client(
             name=data['name'],
@@ -43,7 +63,12 @@ def signup_client():
         new_client.password = data['password']
         db.session.add(new_client)
         db.session.commit()
-        return new_client.to_dict(), 201
+
+        return {
+            "token": secrets.token_hex(16),
+            "client": new_client.to_dict()
+        }, 201
+
     except Exception as e:
         db.session.rollback()
         return {"error": str(e)}, 400
@@ -53,28 +78,45 @@ def signup_client():
 @app.route('/login/user', methods=['POST'])
 def login_user():
     data = request.get_json()
-    user = User.query.filter_by(email=data['email']).first()
-    if user and user.check_password(data['password']):
-        return user.to_dict(), 200
-    return {"error": "Invalid email or password"}, 401
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return {"error": "Email and password are required."}, 400
+
+    user = User.query.filter_by(email=email).first()
+    if user and user.check_password(password):
+        return {
+            "token": secrets.token_hex(16),
+            "user": user.to_dict()
+        }, 200
+    return {"error": "Invalid email or password."}, 401
+
 
 @app.route('/login/client', methods=['POST'])
 def login_client():
     data = request.get_json()
-    client = Client.query.filter_by(email=data['email']).first()
-    if client and client.check_password(data['password']):
-        return client.to_dict(), 200
-    return {"error": "Invalid email or password"}, 401
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return {"error": "Email and password are required."}, 400
+
+    client = Client.query.filter_by(email=email).first()
+    if client and client.check_password(password):
+        return {
+            "token": secrets.token_hex(16),
+            "client": client.to_dict()
+        }, 200
+    return {"error": "Invalid email or password."}, 401
 
 
-
-
-
+# ------------------- RESOURCES -------------------
 
 class PortfolioItemsResource(Resource):
     def get(self):
-        portfolio_items = PortfolioItem.query.all()
-        return [item.to_dict() for item in portfolio_items], 200
+        items = PortfolioItem.query.all()
+        return [item.to_dict() for item in items], 200
 
     def post(self):
         data = request.get_json()
@@ -88,6 +130,7 @@ class PortfolioItemsResource(Resource):
         db.session.add(new_item)
         db.session.commit()
         return new_item.to_dict(), 201
+
 
 class PortfolioItemResource(Resource):
     def get(self, id):
@@ -108,10 +151,11 @@ class PortfolioItemResource(Resource):
         db.session.commit()
         return {}, 204
 
+
 class BookingsResource(Resource):
     def get(self):
         bookings = Booking.query.all()
-        return [booking.to_dict() for booking in bookings], 200
+        return [b.to_dict() for b in bookings], 200
 
     def post(self):
         data = request.get_json()
@@ -127,10 +171,11 @@ class BookingsResource(Resource):
         db.session.commit()
         return new_booking.to_dict(), 201
 
-# Registering the resources with the API
+# Register routes with API
 api.add_resource(PortfolioItemsResource, '/portfolio-items')
 api.add_resource(PortfolioItemResource, '/portfolio-items/<int:id>')
 api.add_resource(BookingsResource, '/bookings')
 
+# Run the app
 if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+    app.run(port=5000, debug=True)

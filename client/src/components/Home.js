@@ -11,7 +11,7 @@ function Home() {
 
   useEffect(() => {
     setLoading(true);
-    fetch('http://localhost:5555/portfolio-items')
+    fetch('http://localhost:5000/portfolio-items')
       .then(response => response.json())
       .then(data => setPortfolioItems(data))
       .catch(error => console.error('Fetch error:', error))

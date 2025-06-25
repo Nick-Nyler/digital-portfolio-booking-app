@@ -1,3 +1,4 @@
+// components/Login.js
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { useNavigate } from 'react-router-dom';
@@ -5,7 +6,7 @@ import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 
 const LoginSchema = Yup.object().shape({
-  username: Yup.string().required('Username is required'),
+  email: Yup.string().email('Invalid email').required('Email is required'),
   password: Yup.string().required('Password is required'),
 });
 
@@ -13,7 +14,7 @@ function Login({ setIsAuthenticated }) {
   const navigate = useNavigate();
 
   const handleSubmit = (values) => {
-    fetch('http://localhost:5555/login', {
+    fetch('http://localhost:5000/login/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
@@ -26,7 +27,7 @@ function Login({ setIsAuthenticated }) {
         localStorage.setItem('token', data.token);
         setIsAuthenticated(true);
         toast.success('Logged in successfully!');
-        navigate('/');
+        navigate('/dashboard');
       })
       .catch(error => toast.error(`Error: ${error.message}`));
   };
@@ -35,16 +36,16 @@ function Login({ setIsAuthenticated }) {
     <div className="detail-container">
       <h2>Sign In</h2>
       <Formik
-        initialValues={{ username: '', password: '' }}
+        initialValues={{ email: '', password: '' }}
         validationSchema={LoginSchema}
         onSubmit={handleSubmit}
       >
         {({ isSubmitting }) => (
           <Form>
             <div>
-              <label htmlFor="username">Username</label>
-              <Field type="text" name="username" className="input-field" />
-              <ErrorMessage name="username" component="div" className="error" />
+              <label htmlFor="email">Email</label>
+              <Field type="email" name="email" className="input-field" />
+              <ErrorMessage name="email" component="div" className="error" />
             </div>
             <div>
               <label htmlFor="password">Password</label>
