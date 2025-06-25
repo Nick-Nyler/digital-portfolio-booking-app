@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
@@ -13,6 +13,7 @@ function ClientDashboard() {
     retry: 1,
   });
 
+  const [reviewData, setReviewData] = useState({ rating: 0, comment: '', bookingId: null });
   const reviewMutation = useMutation({
     mutationFn: (data) => axios.post(`http://localhost:5555/reviews/${data.bookingId}`, data, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
@@ -41,9 +42,26 @@ function ClientDashboard() {
             <p>Date: {booking.date}, Time: {booking.time}, Status: {booking.status}</p>
             {booking.status === 'accepted' && !booking.review && (
               <div className="mt-2">
-                <input type="number" min="1" max="5" placeholder="Rating (1-5)" onChange={(e) => setReviewData({ ...reviewData, rating: parseInt(e.target.value), bookingId: booking.id })} className="p-2 rounded-lg border border-gray-300 text-black mr-2" />
-                <input type="text" placeholder="Comment" onChange={(e) => setReviewData({ ...reviewData, comment: e.target.value, bookingId: booking.id })} className="p-2 rounded-lg border border-gray-300 text-black mr-2" />
-                <button onClick={() => reviewMutation.mutate(reviewData)} className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Submit Review</button>
+                <input
+                  type="number"
+                  min="1"
+                  max="5"
+                  placeholder="Rating (1-5)"
+                  onChange={(e) => setReviewData({ ...reviewData, rating: parseInt(e.target.value), bookingId: booking.id })}
+                  className="p-2 rounded-lg border border-gray-300 text-black mr-2"
+                />
+                <input
+                  type="text"
+                  placeholder="Comment"
+                  onChange={(e) => setReviewData({ ...reviewData, comment: e.target.value, bookingId: booking.id })}
+                  className="p-2 rounded-lg border border-gray-300 text-black mr-2"
+                />
+                <button
+                  onClick={() => reviewMutation.mutate(reviewData)}
+                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                >
+                  Submit Review
+                </button>
               </div>
             )}
             {booking.review && <p className="mt-2">Review: Rating {booking.review.rating}, {booking.review.comment}</p>}
