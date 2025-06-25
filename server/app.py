@@ -21,14 +21,78 @@ app.config['MAIL_USERNAME'] = 'your-email@gmail.com'  # Replace with your email
 app.config['MAIL_PASSWORD'] = 'your-app-password'     # Use App Password for Gmail
 app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'
 
+class UserResource(Resource):
+    @jwt_required()
+    def get(self, id=None):
+        if id:
+            user = User.query.get_or_404(id)
+            if user.role == 'creator' or (get_jwt_identity() == user.id or User.query.get(get_jwt_identity()).role == 'super_admin'):
+                return {"id": user.id, "username": user.username, "email": user.email, "role": user.role, "bio": user.bio}
+            return {"message": "Unauthorized"}, 403
+        users = User.query.filter_by(role='creator').all()
+        return [{"id": u.id, "username": u.username, "email": u.email, "role": u.role, "bio": u.bio} for u in users]
+
+    @jwt_required()
+    def put(self, id):
+        user = User.query.get_or_404(id)
+        if user.id != get_jwt_identity() and User.query.get(get_jwt_identity()).role != 'super_admin':
+            return {"message": "Unauthorized"}, 403
+        data = request.get_json()
+        try:
+            user.email = data.get('email', user.email)
+            if data.get('password'):
+                user.set_password(data['password'])
+            user.bio = data.get('bio', user.bio)
+            db.session.commit()
+            return {"message": "Profile updated"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Update failed: {str(e)}"}, 500
+
+    @jwt_required()
+    def delete(self, id):
+        user = User.query.get_or_404(id)
+        if user.id != get_jwt_identity() and User.query.get(get_jwt_identity()).role != 'super_admin':
+            return {"message": "Unauthorized"}, 403
+        try:
+            db.session.delete(user)
+            db.session.commit()
+            return {"message": "Profile deleted"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Delete failed: {str(e)}"}, 500
+
+class AuthResource(Resource):
+    def post(self):
+        data = request.get_json()
+        user = User.query.filter_by(username=data['username']).first()
+        if user and check_password_hash(user.password, data['password']):
+            token = create_access_token(identity=user.id)
+            return {"token": token, "role": user.role}, 200
+        return {"message": "Invalid credentials"}, 401
+
+    def put(self):
+        data = request.get_json()
+        if User.query.filter_by(username=data['username']).first():
+            return {"message": "Username already exists"}, 400
+        new_user = User(username=data['username'], email=data['email'], role=data.get('role', 'client'))
+        new_user.set_password(data['password'])
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            token = create_access_token(identity=new_user.id)
+            return {"token": token, "role": new_user.role}, 201
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Registration failed: {str(e)}"}, 500
+
 class PortfolioItemResource(Resource):
     @jwt_required()
     def get(self, id=None):
         if id:
             item = PortfolioItem.query.get_or_404(id)
             if item.user_id != get_jwt_identity():
-                return {"message": "Unauthorized"}, 403
-            return {"id": item.id, "title": item.title, "image_url": item.image_url, "description": item.description, "category": item.category, "price": item.price, "rating": item.rating}
+                return {"id": item.id, "title": item.title, "image_url": item.image_url, "description": item.description, "category": item.category, "price": item.price, "rating": item.rating}
         items = PortfolioItem.query.filter_by(user_id=get_jwt_identity()).all()
         return [{"id": item.id, "title": item.title, "image_url": item.image_url, "description": item.description, "category": item.category, "price": item.price, "rating": item.rating} for item in items]
 
@@ -90,11 +154,10 @@ class BookingResource(Resource):
         data = request.get_json()
         if not data.get('client_id'):
             data['client_id'] = get_jwt_identity()
-        new_booking = Booking(date=data['date'], time=data['time'], client_name=data['clientName'], status='pending', user_id=get_jwt_identity(), client_id=data.get('client_id'))
+        new_booking = Booking(date=data['date'], time=data['time'], client_name=data['clientName'], status='pending', user_id=data['creatorId'], client_id=data['client_id'])
         try:
             db.session.add(new_booking)
             db.session.commit()
-            # Send email notification
             msg = Message("New Booking on Artify", recipients=[User.query.get(new_booking.user_id).email])
             msg.body = f"New booking from {new_booking.client_name} on {new_booking.date} at {new_booking.time}."
             mail.send(msg)
@@ -112,7 +175,6 @@ class BookingResource(Resource):
         try:
             booking.status = data.get('status', booking.status)
             db.session.commit()
-            # Send email notification for status change
             msg = Message("Booking Update on Artify", recipients=[User.query.get(booking.client_id).email])
             msg.body = f"Your booking on {booking.date} at {booking.time} is now {booking.status}."
             mail.send(msg)
@@ -126,27 +188,7 @@ class ClientBookingResource(Resource):
     def get(self):
         user_id = get_jwt_identity()
         bookings = Booking.query.filter_by(client_id=user_id).all()
-        return [{"id": b.id, "date": b.date, "time": b.time, "status": b.status, "review": b.review} for b in bookings]
-
-class UserResource(Resource):
-    @jwt_required()
-    def get(self):
-        user = User.query.get_or_404(get_jwt_identity())
-        return {"id": user.id, "username": user.username, "email": user.email}
-
-    @jwt_required()
-    def put(self):
-        user = User.query.get_or_404(get_jwt_identity())
-        data = request.get_json()
-        try:
-            user.email = data.get('email', user.email)
-            if data.get('password'):
-                user.set_password(data['password'])
-            db.session.commit()
-            return {"message": "Profile updated"}, 200
-        except Exception as e:
-            db.session.rollback()
-            return {"message": f"Update failed: {str(e)}"}, 500
+        return [{"id": b.id, "date": b.date, "time": b.time, "status": b.status, "review": b.review, "creator": User.query.get(b.user_id).username} for b in bookings]
 
 class ReviewResource(Resource):
     @jwt_required()
@@ -163,21 +205,12 @@ class ReviewResource(Resource):
             db.session.rollback()
             return {"message": f"Review failed: {str(e)}"}, 500
 
-class AuthResource(Resource):
-    def post(self):
-        data = request.get_json()
-        user = User.query.filter_by(username=data['username']).first()
-        if user and check_password_hash(user.password, data['password']):
-            token = create_access_token(identity=user.id)
-            return {"token": token}, 200
-        return {"message": "Invalid credentials"}, 401
-
+api.add_resource(UserResource, '/users', '/users/<int:id>')
 api.add_resource(PortfolioItemResource, '/portfolio-items', '/portfolio-items/<int:id>')
 api.add_resource(BookingResource, '/bookings', '/bookings/<int:id>')
 api.add_resource(ClientBookingResource, '/bookings/client')
-api.add_resource(UserResource, '/user')
 api.add_resource(ReviewResource, '/reviews/<int:booking_id>')
-api.add_resource(AuthResource, '/login')
+api.add_resource(AuthResource, '/auth')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5555)
