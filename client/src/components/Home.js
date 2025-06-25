@@ -11,14 +11,15 @@ function Home() {
   });
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [priceRange, setPriceRange] = useState([0, 100]);
+  const [rating, setRating] = useState(0);
 
-  // Only filter if portfolioItems is an array
-  const filteredItems = Array.isArray(portfolioItems) 
-    ? portfolioItems.filter(item =>
-        item.title.toLowerCase().includes(search.toLowerCase()) &&
-        (category === '' || item.category === category)
-      )
-    : [];
+  const filteredItems = Array.isArray(portfolioItems) ? portfolioItems.filter(item =>
+    item.title.toLowerCase().includes(search.toLowerCase()) &&
+    (category === '' || item.category === category) &&
+    item.price >= priceRange[0] && item.price <= priceRange[1] &&
+    (!rating || item.rating >= rating)
+  ) : [];
 
   return (
     <div className="min-h-screen">
@@ -57,6 +58,22 @@ function Home() {
             <option value="Photography">Photography</option>
             <option value="Sculpture">Sculpture</option>
           </select>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={priceRange[0]}
+            onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
+            className="p-2 rounded-lg border border-gray-300 text-black"
+          />
+          <input
+            type="range"
+            min="0"
+            max="5"
+            value={rating}
+            onChange={(e) => setRating(parseInt(e.target.value))}
+            className="p-2 rounded-lg border border-gray-300 text-black"
+          />
         </div>
         {isLoading && <p className="text-center">Loading...</p>}
         {error && <p className="text-center text-red-300">Error loading items: {error.message}</p>}
@@ -72,6 +89,8 @@ function Home() {
                 <div className="p-4">
                   <h3 className="text-xl font-semibold text-white">{item.title}</h3>
                   <p className="text-gray-300">{item.category}</p>
+                  <p>Price: ${item.price}</p>
+                  <p>Rating: {item.rating || 'N/A'}</p>
                 </div>
               </Link>
             </motion.div>
