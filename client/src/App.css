@@ -1,206 +1,38 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #ffffff;
-  color: #333;
+.App {
+  text-align: center;
 }
 
-nav {
-  background-color: #333;
-  color: white;
-  padding: 1rem;
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-}
-
-.brand {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-nav a {
-  color: white;
-  text-decoration: none;
-  margin-left: 1rem;
-}
-
-nav button {
-  background-color: #666;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
-
-.home-container {
-  text-align: center;
-  padding: 1rem;
-}
-
-.home-container h1 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-.home-container p {
-  color: #666;
-  margin-bottom: 1rem;
-}
-
-.home-container button {
-  background-color: #666;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  cursor: pointer;
-}
-
-.home-container .gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.home-container .gallery a {
-  text-decoration: none;
-  color: #333;
-}
-
-.home-container .gallery div {
-  background-color: #f9f9f9;
-  padding: 1rem;
-}
-
-.home-container img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-}
-
-.detail-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-.detail-container img {
-  width: 100%;
-  height: 300px;
-  object-fit: cover;
-}
-
-.detail-container h2 {
-  font-size: 1.5rem;
-  margin: 0.5rem 0;
-}
-
-.detail-container p {
-  color: #666;
-  margin-bottom: 1rem;
-}
-
-.detail-container a {
-  background-color: #666;
-  color: white;
-  padding: 0.5rem 1rem;
-  text-decoration: none;
-}
-
-.dashboard-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-.dashboard-container h2 {
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.dashboard-container ul {
-  list-style: none;
-  padding: 0;
-}
-
-.dashboard-container li {
-  background-color: #f9f9f9;
-  padding: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.dashboard-container button {
-  padding: 0.25rem 0.5rem;
-  border: none;
-  cursor: pointer;
-  margin-right: 0.5rem;
-}
-
-.edit-btn {
-  background-color: #555;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
   color: white;
 }
 
-.delete-btn {
-  background-color: #900;
-  color: white;
+.App-link {
+  color: #61dafb;
 }
 
-.accept-btn {
-  background-color: #090;
-  color: white;
-}
-
-.decline-btn {
-  background-color: #900;
-  color: white;
-}
-
-.input-field {
-  width: 100%;
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-  border: 1px solid #ccc;
-  border-radius: 0;
-}
-
-.error {
-  color: #900;
-  font-size: 0.875rem;
-}
-
-.submit-btn {
-  background-color: #666;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  cursor: pointer;
-}
-
-footer {
-  background-color: #333;
-  color: white;
-  text-align: center;
-  padding: 1rem;
-}
-
-input, select {
-  tab-index: 0;
-}
-
-button:focus, input:focus, select:focus {
-  outline: 2px solid #666;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

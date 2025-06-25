@@ -3,9 +3,10 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
+import { motion } from 'framer-motion';
 
 const BookingSchema = Yup.object().shape({
-  date: Yup.date().required('Date is required').min(new Date(), 'Date cannot be in the past'),
+  date: Yup.date().required('Date is required').min(new Date(), 'Date must be in the future'),
   time: Yup.string().required('Time is required'),
   clientName: Yup.string().required('Client name is required').min(2, 'Too short'),
 });
@@ -19,9 +20,9 @@ function BookingForm() {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
       body: JSON.stringify(values),
     })
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
+      .then(res => {
+        if (!res.ok) throw new Error('Booking failed');
+        return res.json();
       })
       .then(() => {
         toast.success('Booking submitted!');
@@ -32,37 +33,47 @@ function BookingForm() {
   };
 
   return (
-    <div className="detail-container" role="form" aria-label="Booking Form">
-      <h2>Book a Session</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto px-4 py-8"
+    >
+      <h2 className="text-3xl font-bold mb-6 text-center">Book Your Session</h2>
       <Formik
         initialValues={{ date: '', time: '', clientName: '' }}
         validationSchema={BookingSchema}
         onSubmit={handleSubmit}
       >
-        {({ isSubmitting, touched, errors }) => (
-          <Form>
-            <div>
-              <label htmlFor="date">Date</label>
-              <Field type="date" name="date" className="input-field" aria-invalid={touched.date && !!errors.date} />
-              <ErrorMessage name="date" component="div" className="error" />
+        {({ isSubmitting }) => (
+          <Form className="max-w-md mx-auto bg-white/20 backdrop-blur-md p-6 rounded-lg">
+            <div className="mb-4">
+              <label htmlFor="date" className="block text-white mb-2">Date</label>
+              <Field type="date" name="date" className="w-full p-2 rounded-lg border border-gray-300 text-black" />
+              <ErrorMessage name="date" component="div" className="text-red-300 text-sm mt-1" />
             </div>
-            <div>
-              <label htmlFor="time">Time</label>
-              <Field type="time" name="time" className="input-field" aria-invalid={touched.time && !!errors.time} />
-              <ErrorMessage name="time" component="div" className="error" />
+            <div className="mb-4">
+              <label htmlFor="time" className="block text-white mb-2">Time</label>
+              <Field type="time" name="time" className="w-full p-2 rounded-lg border border-gray-300 text-black" />
+              <ErrorMessage name="time" component="div" className="text-red-300 text-sm mt-1" />
             </div>
-            <div>
-              <label htmlFor="clientName">Client Name</label>
-              <Field type="text" name="clientName" className="input-field" aria-invalid={touched.clientName && !!errors.clientName} />
-              <ErrorMessage name="clientName" component="div" className="error" />
+            <div className="mb-6">
+              <label htmlFor="clientName" className="block text-white mb-2">Your Name</label>
+              <Field type="text" name="clientName" className="w-full p-2 rounded-lg border border-gray-300 text-black" />
+              <ErrorMessage name="clientName" component="div" className="text-red-300 text-sm mt-1" />
             </div>
-            <button type="submit" disabled={isSubmitting} className="submit-btn" aria-label="Submit booking">
+            <motion.button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               Submit Booking
-            </button>
+            </motion.button>
           </Form>
         )}
       </Formik>
-    </div>
+    </motion.div>
   );
 }
 
