@@ -4,29 +4,20 @@ import App from './App';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import 'react-loading-skeleton/dist/skeleton.css';
-import reportWebVitals from './reportWebVitals';
-import ErrorBoundary from './components/ErrorBoundary';
+import { BrowserRouter } from 'react-router-dom';
 
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
+  defaultOptions: { queries: { retry: 1, staleTime: 5 * 60 * 1000 } },
 });
 
 ReactDOM.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
+      <BrowserRouter>
         <App />
-      </ErrorBoundary>
-      <ToastContainer />
+        <ToastContainer position="bottom-right" autoClose={3000} />
+      </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );
-
-reportWebVitals();

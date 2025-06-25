@@ -3,6 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
+import { motion } from 'framer-motion';
 
 const LoginSchema = Yup.object().shape({
   username: Yup.string().required('Required').min(3, 'Too short'),
@@ -18,14 +19,14 @@ function Login({ setIsAuthenticated }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
     })
-      .then(response => {
-        if (!response.ok) throw new Error('Login failed');
-        return response.json();
+      .then(res => {
+        if (!res.ok) throw new Error('Login failed');
+        return res.json();
       })
       .then(data => {
         localStorage.setItem('token', data.token);
         setIsAuthenticated(true);
-        toast.success('Logged in successfully!');
+        toast.success('Logged in!');
         navigate('/');
       })
       .catch(error => toast.error(`Error: ${error.message}`))
@@ -33,32 +34,42 @@ function Login({ setIsAuthenticated }) {
   };
 
   return (
-    <div className="detail-container" role="form" aria-label="Login Form">
-      <h2>Sign In</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto px-4 py-8"
+    >
+      <h2 className="text-3xl font-bold mb-6 text-center">Sign In</h2>
       <Formik
         initialValues={{ username: '', password: '' }}
         validationSchema={LoginSchema}
         onSubmit={handleSubmit}
       >
-        {({ isSubmitting, touched, errors }) => (
-          <Form>
-            <div>
-              <label htmlFor="username">Username</label>
-              <Field type="text" name="username" className="input-field" aria-invalid={touched.username && !!errors.username} />
-              <ErrorMessage name="username" component="div" className="error" />
+        {({ isSubmitting }) => (
+          <Form className="max-w-md mx-auto bg-white/20 backdrop-blur-md p-6 rounded-lg">
+            <div className="mb-4">
+              <label htmlFor="username" className="block text-white mb-2">Username</label>
+              <Field type="text" name="username" className="w-full p-2 rounded-lg border border-gray-300 text-black" />
+              <ErrorMessage name="username" component="div" className="text-red-300 text-sm mt-1" />
             </div>
-            <div>
-              <label htmlFor="password">Password</label>
-              <Field type="password" name="password" className="input-field" aria-invalid={touched.password && !!errors.password} />
-              <ErrorMessage name="password" component="div" className="error" />
+            <div className="mb-6">
+              <label htmlFor="password" className="block text-white mb-2">Password</label>
+              <Field type="password" name="password" className="w-full p-2 rounded-lg border border-gray-300 text-black" />
+              <ErrorMessage name="password" component="div" className="text-red-300 text-sm mt-1" />
             </div>
-            <button type="submit" disabled={isSubmitting} className="submit-btn" aria-label="Sign in">
+            <motion.button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               Sign In
-            </button>
+            </motion.button>
           </Form>
         )}
       </Formik>
-    </div>
+    </motion.div>
   );
 }
 

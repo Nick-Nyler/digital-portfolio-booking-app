@@ -1,31 +1,37 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 
 function ClientDashboard() {
   const { data: bookings = [], isLoading, error } = useQuery({
     queryKey: ['clientBookings'],
     queryFn: () => fetch('http://localhost:5555/bookings/client', {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-    }).then(res => {
-      if (!res.ok) throw new Error('Failed to fetch client bookings');
-      return res.json();
-    }),
+    }).then(res => res.json()),
     retry: 1,
   });
 
-  if (isLoading) return <div className="dashboard-container"><p>Loading...</p></div>;
-  if (error) return <div className="dashboard-container">Error loading bookings: {error.message}</div>;
+  if (isLoading) return <p className="text-center">Loading...</p>;
+  if (error) return <p className="text-center text-red-300">Error: {error.message}</p>;
 
   return (
-    <div className="dashboard-container" role="region" aria-label="Client Dashboard">
-      <h2>Your Bookings</h2>
-      <ul>
+    <div className="container mx-auto px-4 py-8">
+      <h2 className="text-2xl font-bold mb-6">Your Bookings</h2>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
         {bookings.map(booking => (
-          <li key={booking.id}>
+          <motion.div
+            key={booking.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white/10 backdrop-blur-md p-4 rounded-lg mb-2"
+          >
             <p>Date: {booking.date}, Time: {booking.time}, Status: {booking.status}</p>
-          </li>
+          </motion.div>
         ))}
-      </ul>
+      </motion.div>
     </div>
   );
 }

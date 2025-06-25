@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.pipenv/
+*.pyc
+__pycache__/
+
+# Virtual environments
+.env
+venv/
+.venv/
+
+# Build and deployment
+build/
+dist/
+*.log
+*.sqlite3
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE and editor files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Server instance
+server/instance/
+
+# Local configuration
+config.py
+*.env
+
+# React build artifacts
+client/build/
+
+# Pipfile.lock (optional, if you want to regenerate it per environment)
+# Pipfile.lock

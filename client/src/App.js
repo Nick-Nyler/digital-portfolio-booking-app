@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import './App.css';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import NavBar from './components/NavBar';
 import Home from './components/Home';
-import PortfolioItemDetail from './components/PortfolioItemDetail';
-import CreatorDashboard from './components/CreatorDashboard';
+import PortfolioDetail from './components/PortfolioDetail';
 import BookingForm from './components/BookingForm';
 import BookingConfirm from './components/BookingConfirm';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import CreatorDashboard from './components/CreatorDashboard';
 import ClientDashboard from './components/ClientDashboard';
 import Pricing from './components/Pricing';
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/signin" replace />;
+  return token ? children : <Navigate to="/login" replace />;
 };
 
 function App() {
@@ -23,25 +23,33 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsAuthenticated(!!token);
-    if (!token) console.warn('No authentication token found');
   }, []);
 
   return (
-    <Router>
+    <div className="min-h-screen">
       <NavBar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/portfolio/:id" element={<PortfolioItemDetail />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/signin" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
-        <Route path="/signup" element={<Signup setIsAuthenticated={setIsAuthenticated} />} />
-        <Route path="/booking" element={<BookingForm />} />
-        <Route path="/booking/confirm" element={<BookingConfirm />} />
-        <Route path="/dashboard" element={<PrivateRoute><CreatorDashboard /></PrivateRoute>} />
-        <Route path="/client-dashboard" element={<PrivateRoute><ClientDashboard /></PrivateRoute>} />
-      </Routes>
-      <footer><p>Contact: info@artify.com | © 2025 Artify | <a href="/pricing">Subscribe</a></p></footer>
-    </Router>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto px-4 py-6"
+      >
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/portfolio/:id" element={<PortfolioDetail />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+          <Route path="/signup" element={<Signup setIsAuthenticated={setIsAuthenticated} />} />
+          <Route path="/booking" element={<BookingForm />} />
+          <Route path="/booking/confirm" element={<BookingConfirm />} />
+          <Route path="/creator-dashboard" element={<PrivateRoute><CreatorDashboard /></PrivateRoute>} />
+          <Route path="/client-dashboard" element={<PrivateRoute><ClientDashboard /></PrivateRoute>} />
+        </Routes>
+      </motion.div>
+      <footer className="bg-gray-800 text-center py-4 mt-6">
+        <p>© 2025 Artify | <a href="/pricing" className="text-blue-300 hover:underline">Subscribe</a> | Contact: info@artify.com</p>
+      </footer>
+    </div>
   );
 }
 
