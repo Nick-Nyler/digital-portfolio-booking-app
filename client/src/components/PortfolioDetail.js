@@ -32,6 +32,8 @@ function PortfolioDetail() {
       <h2 className="text-3xl font-bold mb-2">{item.title}</h2>
       <p className="text-gray-300 mb-4">{item.description}</p>
       <p className="text-gray-400">Category: {item.category}</p>
+      <p>Price: ${item.price || 'N/A'}</p>
+      <p>Rating: {item.rating || 'N/A'}</p>
       <motion.a
         href="/booking"
         className="mt-4 inline-block bg-orange-500 text-white px-6 py-3 rounded-full hover:bg-orange-600 transition"
