@@ -14,11 +14,12 @@ jwt = JWTManager(app)
 CORS(app)
 mail = Mail(app)
 
+# Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'your-email@gmail.com'  # Replace with your email
-app.config['MAIL_PASSWORD'] = 'your-app-password'     # Use App Password for Gmail
+app.config['MAIL_USERNAME'] = 'your-email@gmail.com'         # Replace with your email
+app.config['MAIL_PASSWORD'] = 'your-app-password'            # Use App Password from Gmail
 app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'
 
 @app.route('/')
@@ -98,14 +99,30 @@ class PortfolioItemResource(Resource):
             if item.user_id != get_jwt_identity():
                 return {"id": item.id, "title": item.title, "image_url": item.image_url, "description": item.description, "category": item.category, "price": item.price, "rating": item.rating}
         items = PortfolioItem.query.filter_by(user_id=get_jwt_identity()).all()
-        return [{"id": item.id, "title": item.title, "image_url": item.image_url, "description": item.description, "category": item.category, "price": item.price, "rating": item.rating} for item in items]
+        return [{
+            "id": item.id,
+            "title": item.title,
+            "image_url": item.image_url,
+            "description": item.description,
+            "category": item.category,
+            "price": item.price,
+            "rating": item.rating
+        } for item in items]
 
     @jwt_required()
     def post(self):
         data = request.get_json()
         if not data.get('user_id'):
             data['user_id'] = get_jwt_identity()
-        new_item = PortfolioItem(title=data['title'], image_url=data['image_url'], description=data.get('description'), category=data.get('category'), price=data.get('price', 0.0), rating=data.get('rating', 0.0), user_id=data['user_id'])
+        new_item = PortfolioItem(
+            title=data['title'],
+            image_url=data['image_url'],
+            description=data.get('description'),
+            category=data.get('category'),
+            price=data.get('price', 0.0),
+            rating=data.get('rating', 0.0),
+            user_id=data['user_id']
+        )
         try:
             db.session.add(new_item)
             db.session.commit()
@@ -146,19 +163,49 @@ class PortfolioItemResource(Resource):
             db.session.rollback()
             return {"message": f"Delete failed: {str(e)}"}, 500
 
+class PublicPortfolioItems(Resource):
+    def get(self):
+        items = PortfolioItem.query.all()
+        result = [{
+            "id": item.id,
+            "title": item.title,
+            "image_url": item.image_url,
+            "description": item.description,
+            "category": item.category,
+            "price": item.price,
+            "rating": item.rating,
+            "user_id": item.user_id,
+            "creator": item.user.username if item.user else "Unknown"
+        } for item in items]
+        return result, 200
+
 class BookingResource(Resource):
     @jwt_required()
     def get(self):
         user_id = get_jwt_identity()
         bookings = Booking.query.filter_by(user_id=user_id).all()
-        return [{"id": b.id, "date": b.date, "time": b.time, "client_name": b.client_name, "status": b.status, "review": b.review} for b in bookings]
+        return [{
+            "id": b.id,
+            "date": b.date,
+            "time": b.time,
+            "client_name": b.client_name,
+            "status": b.status,
+            "review": b.review
+        } for b in bookings]
 
     @jwt_required()
     def post(self):
         data = request.get_json()
         if not data.get('client_id'):
             data['client_id'] = get_jwt_identity()
-        new_booking = Booking(date=data['date'], time=data['time'], client_name=data['clientName'], status='pending', user_id=data['creatorId'], client_id=data['client_id'])
+        new_booking = Booking(
+            date=data['date'],
+            time=data['time'],
+            client_name=data['clientName'],
+            status='pending',
+            user_id=data['creatorId'],
+            client_id=data['client_id']
+        )
         try:
             db.session.add(new_booking)
             db.session.commit()
@@ -192,7 +239,16 @@ class ClientBookingResource(Resource):
     def get(self):
         user_id = get_jwt_identity()
         bookings = Booking.query.filter_by(client_id=user_id).all()
-        return [{"id": b.id, "date": b.date, "time": b.time, "status": b.status, "review": b.review, "creator": User.query.get(b.user_id).username} for b in bookings]
+        return jsonify([
+        {
+            "id": b.id,
+            "date": b.date,
+            "time": b.time,
+            "status": b.status,
+            "review": b.review,
+            "creator": User.query.get(b.user_id).username
+        } for b in bookings
+    ])
 
 class ReviewResource(Resource):
     @jwt_required()
@@ -209,8 +265,10 @@ class ReviewResource(Resource):
             db.session.rollback()
             return {"message": f"Review failed: {str(e)}"}, 500
 
+# Register API resources
 api.add_resource(UserResource, '/users', '/users/<int:id>')
 api.add_resource(PortfolioItemResource, '/portfolio-items', '/portfolio-items/<int:id>')
+api.add_resource(PublicPortfolioItems, '/public-portfolio-items')  # ⬅️ added
 api.add_resource(BookingResource, '/bookings', '/bookings/<int:id>')
 api.add_resource(ClientBookingResource, '/bookings/client')
 api.add_resource(ReviewResource, '/reviews/<int:booking_id>')
