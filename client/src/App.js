@@ -14,8 +14,9 @@ import ClientDashboard from './components/ClientDashboard';
 import Pricing from './components/Pricing';
 import Profile from './components/Profile';
 import Calendar from './components/Calendar';
-// Placeholder component – replace with your actual RateCard component
-const RateCard = () => <div className="text-center py-10 text-xl">Rate Card Page (coming soon)</div>;
+import RateCard from './components/RateCard';
+
+
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -61,6 +62,9 @@ function App() {
           {/* Profile and Calendar */}
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/calendar" element={<PrivateRoute><Calendar /></PrivateRoute>} />
+
+          <Route path="*" element={<div className="text-center text-red-500 text-xl">Page not found</div>} />
+
         </Routes>
       </motion.main>
 

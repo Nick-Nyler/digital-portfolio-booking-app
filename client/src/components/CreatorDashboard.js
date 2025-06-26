@@ -10,26 +10,29 @@ function CreatorDashboard() {
 
   const { data: bookingsRaw, isLoading: bookingsLoading } = useQuery({
     queryKey: ['creatorBookings'],
-    queryFn: () => fetch('http://localhost:5555/bookings', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-    }).then(res => res.json()),
+    queryFn: () =>
+      fetch('http://localhost:5555/bookings', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      }).then((res) => res.json()),
   });
 
   const bookings = Array.isArray(bookingsRaw) ? bookingsRaw : [];
 
   const { data: profile = {}, isLoading: profileLoading } = useQuery({
     queryKey: ['creatorProfile'],
-    queryFn: () => fetch('http://localhost:5555/users', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-    }).then(res => res.json()),
+    queryFn: () =>
+      fetch('http://localhost:5555/users', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      }).then((res) => res.json()),
   });
 
   const [formData, setFormData] = useState({ bio: '', skills: '', rate: '' });
 
   const updateMutation = useMutation({
-    mutationFn: () => axios.put(`http://localhost:5555/users/${profile.id}`, formData, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-    }),
+    mutationFn: () =>
+      axios.put(`http://localhost:5555/users/${profile.id}`, formData, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      }),
     onSuccess: () => {
       toast.success('Profile updated!');
       queryClient.invalidateQueries(['creatorProfile']);
@@ -44,6 +47,22 @@ function CreatorDashboard() {
   const handleSubmit = (e) => {
     e.preventDefault();
     updateMutation.mutate();
+  };
+
+  const handleStatusUpdate = (bookingId, newStatus) => {
+    axios
+      .patch(
+        `http://localhost:5555/bookings/${bookingId}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      )
+      .then(() => {
+        toast.success(`Booking ${newStatus}`);
+        queryClient.invalidateQueries(['creatorBookings']);
+      })
+      .catch(() => {
+        toast.error('Failed to update booking status');
+      });
   };
 
   if (bookingsLoading || profileLoading) return <p className="text-center">Loading...</p>;
@@ -90,14 +109,27 @@ function CreatorDashboard() {
         {bookings.length === 0 ? (
           <p className="text-gray-300">No bookings yet.</p>
         ) : (
-          bookings.map(b => (
+          bookings.map((b) => (
             <div key={b.id} className="bg-white/10 backdrop-blur-md p-4 rounded-lg mb-3">
               <p><strong>Date:</strong> {b.date}</p>
               <p><strong>Time:</strong> {b.time}</p>
               <p><strong>Client:</strong> {b.client_name}</p>
               <p><strong>Status:</strong> {b.status}</p>
               {b.status === 'pending' && (
-                <p className="text-yellow-300 italic">Pending confirmation</p>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => handleStatusUpdate(b.id, 'accepted')}
+                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate(b.id, 'denied')}
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                  >
+                    Deny
+                  </button>
+                </div>
               )}
             </div>
           ))

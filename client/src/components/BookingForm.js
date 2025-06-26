@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
 
+// 1) Validation schema stays the same
 const BookingSchema = Yup.object().shape({
   date: Yup.date()
     .required('Date is required')
@@ -14,35 +15,53 @@ const BookingSchema = Yup.object().shape({
 });
 
 function BookingForm() {
-  const { creatorId } = useParams();
-  const location = useLocation();
+  const { creatorId } = useParams();            // grabs :creatorId from the URL
+  const location = useLocation();               // to read state.creatorName
   const navigate = useNavigate();
   const creatorName = location.state?.creatorName;
 
   const handleSubmit = (values, { setSubmitting }) => {
-    const token = localStorage.getItem('token');
+    // **DEBUG LOG**: show exactly what we plan to send
+    console.log('→ Booking payload:', {
+      ...values,
+      creatorId: Number(creatorId),
+    });
+
+    const token = localStorage.getItem('token'); // your JWT
 
     fetch('http://localhost:5555/bookings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,       // include your token
       },
       body: JSON.stringify({
         ...values,
         creatorId: Number(creatorId),
       }),
     })
-      .then((res) => {
-        if (!res.ok) throw new Error('Booking failed');
+      .then(res => {
+        // **DEBUG LOG**: show HTTP status code
+        console.log('← Booking response status:', res.status);
+        if (!res.ok) {
+          throw new Error(`Booking failed (${res.status})`);
+        }
         return res.json();
       })
-      .then(() => {
+      .then(data => {
+        // **DEBUG LOG**: show any JSON response
+        console.log('← Booking response data:', data);
         toast.success('Booking submitted!');
         navigate('/booking/confirm', { state: values });
       })
-      .catch((error) => toast.error(`Error: ${error.message}`))
-      .finally(() => setSubmitting(false));
+      .catch(error => {
+        // **DEBUG LOG**: catch and show any network or parsing errors
+        console.error('‼ Booking error:', error);
+        toast.error(`Error: ${error.message}`);
+      })
+      .finally(() => {
+        setSubmitting(false);
+      });
   };
 
   return (
@@ -57,32 +76,48 @@ function BookingForm() {
           Booking a session with <strong>{creatorName}</strong>
         </p>
       )}
+
       <Formik
-        initialValues={{
-          date: '',
-          time: '',
-          clientName: '',
-        }}
+        initialValues={{ date: '', time: '', clientName: '' }}
         validationSchema={BookingSchema}
         onSubmit={handleSubmit}
       >
         {({ isSubmitting }) => (
           <Form className="max-w-md mx-auto bg-white/20 backdrop-blur-md p-6 rounded-lg">
+            {/* Date Field */}
             <div className="mb-4">
               <label htmlFor="date" className="block text-white mb-2">Date</label>
-              <Field type="date" name="date" className="w-full p-2 rounded-lg border border-gray-300 text-black" />
+              <Field
+                type="date"
+                name="date"
+                className="w-full p-2 rounded-lg border border-gray-300 text-black"
+              />
               <ErrorMessage name="date" component="div" className="text-red-300 text-sm mt-1" />
             </div>
+
+            {/* Time Field */}
             <div className="mb-4">
               <label htmlFor="time" className="block text-white mb-2">Time</label>
-              <Field type="time" name="time" className="w-full p-2 rounded-lg border border-gray-300 text-black" />
+              <Field
+                type="time"
+                name="time"
+                className="w-full p-2 rounded-lg border border-gray-300 text-black"
+              />
               <ErrorMessage name="time" component="div" className="text-red-300 text-sm mt-1" />
             </div>
+
+            {/* Client Name Field */}
             <div className="mb-6">
               <label htmlFor="clientName" className="block text-white mb-2">Your Name</label>
-              <Field type="text" name="clientName" className="w-full p-2 rounded-lg border border-gray-300 text-black" />
+              <Field
+                type="text"
+                name="clientName"
+                className="w-full p-2 rounded-lg border border-gray-300 text-black"
+              />
               <ErrorMessage name="clientName" component="div" className="text-red-300 text-sm mt-1" />
             </div>
+
+            {/* Submit Button */}
             <motion.button
               type="submit"
               disabled={isSubmitting}
