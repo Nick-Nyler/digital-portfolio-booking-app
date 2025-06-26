@@ -6,16 +6,18 @@ import { motion } from 'framer-motion';
 function ClientDashboard() {
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
     queryKey: ['clientBookings'],
-    queryFn: () => fetch('http://localhost:5555/bookings/client', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-    }).then(res => res.json()),
+    queryFn: () =>
+      fetch('http://localhost:5555/bookings/client', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      }).then((res) => res.json()),
   });
 
   const { data: creators = [], isLoading: creatorsLoading } = useQuery({
     queryKey: ['creators'],
-    queryFn: () => fetch('http://localhost:5555/users', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-    }).then(res => res.json()),
+    queryFn: () =>
+      fetch('http://localhost:5555/users', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      }).then((res) => res.json()),
   });
 
   if (bookingsLoading || creatorsLoading) return <p className="text-center">Loading...</p>;
@@ -29,7 +31,7 @@ function ClientDashboard() {
         {bookings.length === 0 ? (
           <p className="text-gray-300">You have no bookings yet.</p>
         ) : (
-          bookings.map(b => (
+          bookings.map((b) => (
             <div key={b.id} className="bg-white/10 backdrop-blur-md p-4 rounded-lg mb-3">
               <p><strong>Date:</strong> {b.date}</p>
               <p><strong>Time:</strong> {b.time}</p>
@@ -46,7 +48,7 @@ function ClientDashboard() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h3 className="text-2xl font-semibold mb-4">Available Creators</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {creators.map(c => (
+          {creators.map((c) => (
             <div key={c.id} className="bg-white/10 backdrop-blur-md p-4 rounded-lg">
               <h4 className="text-xl font-semibold">{c.username}</h4>
               <p><strong>Bio:</strong> {c.bio || 'N/A'}</p>
@@ -61,6 +63,7 @@ function ClientDashboard() {
                 </Link>
                 <Link
                   to={`/book/${c.id}`}
+                  state={{ creatorName: c.username }}
                   className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600"
                 >
                   Book Now

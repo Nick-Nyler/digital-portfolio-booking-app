@@ -1,26 +1,39 @@
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
 
 const BookingSchema = Yup.object().shape({
-  date: Yup.date().required('Date is required').min(new Date(), 'Date must be in the future'),
+  date: Yup.date()
+    .required('Date is required')
+    .min(new Date(), 'Date must be in the future'),
   time: Yup.string().required('Time is required'),
   clientName: Yup.string().required('Client name is required').min(2, 'Too short'),
 });
 
 function BookingForm() {
+  const { creatorId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const creatorName = location.state?.creatorName;
 
   const handleSubmit = (values, { setSubmitting }) => {
+    const token = localStorage.getItem('token');
+
     fetch('http://localhost:5555/bookings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-      body: JSON.stringify(values),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        ...values,
+        creatorId: Number(creatorId),
+      }),
     })
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error('Booking failed');
         return res.json();
       })
@@ -28,7 +41,7 @@ function BookingForm() {
         toast.success('Booking submitted!');
         navigate('/booking/confirm', { state: values });
       })
-      .catch(error => toast.error(`Error: ${error.message}`))
+      .catch((error) => toast.error(`Error: ${error.message}`))
       .finally(() => setSubmitting(false));
   };
 
@@ -39,8 +52,17 @@ function BookingForm() {
       className="container mx-auto px-4 py-8"
     >
       <h2 className="text-3xl font-bold mb-6 text-center">Book Your Session</h2>
+      {creatorName && (
+        <p className="text-white text-center mb-4">
+          Booking a session with <strong>{creatorName}</strong>
+        </p>
+      )}
       <Formik
-        initialValues={{ date: '', time: '', clientName: '' }}
+        initialValues={{
+          date: '',
+          time: '',
+          clientName: '',
+        }}
         validationSchema={BookingSchema}
         onSubmit={handleSubmit}
       >

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+
 import NavBar from './components/NavBar';
 import Home from './components/Home';
 import PortfolioDetail from './components/PortfolioDetail';
@@ -13,6 +14,8 @@ import ClientDashboard from './components/ClientDashboard';
 import Pricing from './components/Pricing';
 import Profile from './components/Profile';
 import Calendar from './components/Calendar';
+// Placeholder component – replace with your actual RateCard component
+const RateCard = () => <div className="text-center py-10 text-xl">Rate Card Page (coming soon)</div>;
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -20,7 +23,7 @@ const PrivateRoute = ({ children }) => {
 };
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -28,13 +31,14 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <NavBar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
-      <motion.div
+      
+      <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="container mx-auto px-4 py-6"
+        className="flex-grow container mx-auto px-4 py-6"
       >
         <Routes>
           <Route path="/" element={<Home />} />
@@ -42,16 +46,29 @@ function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/signup" element={<Signup setIsAuthenticated={setIsAuthenticated} />} />
-          <Route path="/booking" element={<BookingForm />} />
-          <Route path="/booking/confirm" element={<BookingConfirm />} />
+
+          {/* Booking Routes */}
+          <Route path="/book/:creatorId" element={<PrivateRoute><BookingForm /></PrivateRoute>} />
+          <Route path="/booking/confirm" element={<PrivateRoute><BookingConfirm /></PrivateRoute>} />
+
+          {/* Rate Card Route */}
+          <Route path="/ratecard/:id" element={<PrivateRoute><RateCard /></PrivateRoute>} />
+
+          {/* Dashboards */}
           <Route path="/creator-dashboard" element={<PrivateRoute><CreatorDashboard /></PrivateRoute>} />
           <Route path="/client-dashboard" element={<PrivateRoute><ClientDashboard /></PrivateRoute>} />
+
+          {/* Profile and Calendar */}
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/calendar" element={<PrivateRoute><Calendar /></PrivateRoute>} />
         </Routes>
-      </motion.div>
-      <footer className="bg-gray-800 text-center py-4 mt-6">
-        <p>© 2025 Artify | <a href="/pricing" className="text-blue-300 hover:underline">Subscribe</a> | Contact: info@artify.com</p>
+      </motion.main>
+
+      <footer className="bg-gray-800 text-white text-center py-4">
+        <p>
+          © 2025 Artify | <a href="/pricing" className="text-blue-300 hover:underline">Subscribe</a> |
+          Contact: <a href="mailto:info@artify.com" className="hover:underline">info@artify.com</a>
+        </p>
       </footer>
     </div>
   );
