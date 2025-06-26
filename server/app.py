@@ -21,6 +21,10 @@ app.config['MAIL_USERNAME'] = 'your-email@gmail.com'  # Replace with your email
 app.config['MAIL_PASSWORD'] = 'your-app-password'     # Use App Password for Gmail
 app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'
 
+@app.route('/')
+def index():
+    return "Welcome to the Artify API!"
+
 class UserResource(Resource):
     @jwt_required()
     def get(self, id=None):

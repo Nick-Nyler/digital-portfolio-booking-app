@@ -15,8 +15,8 @@ function Signup({ setIsAuthenticated }) {
   const navigate = useNavigate();
 
   const handleSubmit = (values, { setSubmitting }) => {
-    fetch('http://localhost:5555/register', {
-      method: 'POST',
+    fetch('http://localhost:5555/auth', {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
     })
@@ -28,7 +28,7 @@ function Signup({ setIsAuthenticated }) {
         localStorage.setItem('token', data.token);
         setIsAuthenticated(true);
         toast.success('Account created!');
-        navigate('/');
+        navigate('/login');
       })
       .catch(error => toast.error(`Error: ${error.message}`))
       .finally(() => setSubmitting(false));
