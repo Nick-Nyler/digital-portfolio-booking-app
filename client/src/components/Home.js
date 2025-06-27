@@ -14,16 +14,7 @@ function Home() {
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [rating, setRating] = useState(0);
 
-  useEffect(() => {
-    setLoading(true);
-    fetch('http://localhost:5000/portfolio-items')
-      .then(response => response.json())
-      .then(data => setPortfolioItems(data))
-      .catch(error => console.error('Fetch error:', error))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const filteredItems = portfolioItems.filter(item =>
+  const filteredItems = Array.isArray(portfolioItems) ? portfolioItems.filter(item =>
     item.title.toLowerCase().includes(search.toLowerCase()) &&
     (category === '' || item.category === category) &&
     item.price >= priceRange[0] && item.price <= priceRange[1] &&
