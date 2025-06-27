@@ -1,155 +1,163 @@
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_restful import Api, Resource
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
-from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_mail import Mail, Message
-from config import app, db
-from models import PortfolioItem, Booking, User
+# server/app.py
+from flask import request, jsonify
+from config import app, db, api
+from flask_cors import CORS 
+from models import User, PortfolioItem, Client, Booking
+from flask_restful import Resource
+import secrets
 
-# Setup
-api = Api(app)
-jwt = JWTManager(app)
-CORS(app)
-mail = Mail(app)
-
-# Mail config
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'your-email@gmail.com'
-app.config['MAIL_PASSWORD'] = 'your-app-password'
-app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'
+CORS(app) 
 
 @app.route('/')
 def index():
     return "Welcome to the Artify API!"
 
-# -------------------------- USERS ----------------------------
+# ------------------- SIGN UP -------------------
 
-class UserResource(Resource):
-    @jwt_required()
-    def get(self, id=None):
-        current_user = User.query.get(get_jwt_identity())
-        if id:
-            user = User.query.get_or_404(id)
-            if user.role == 'creator' or (current_user.id == user.id or current_user.role == 'super_admin'):
-                return {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "role": user.role,
-                    "bio": user.bio,
-                    "skills": user.skills,
-                    "rate": user.rate
-                }
-            return {"message": "Unauthorized"}, 403
+@app.route('/signup/user', methods=['POST'])
+def signup_user():
+    data = request.get_json()
 
-        # Return all creators
-        users = User.query.filter_by(role='creator').all()
-        return [{
-            "id": u.id,
-            "username": u.username,
-            "email": u.email,
-            "role": u.role,
-            "bio": u.bio,
-            "skills": u.skills,
-            "rate": u.rate
-        } for u in users]
+    required = ['username', 'email', 'password']
+    if not all(field in data for field in required):
+        return {"error": "Username, email, and password are required."}, 400
 
-    @jwt_required()
-    def put(self, id):
-        user = User.query.get_or_404(id)
-        current_user = User.query.get(get_jwt_identity())
-        if user.id != current_user.id and current_user.role != 'super_admin':
-            return {"message": "Unauthorized"}, 403
-        data = request.get_json()
-        try:
-            user.email = data.get('email', user.email)
-            user.bio = data.get('bio', user.bio)
-            user.skills = data.get('skills', user.skills)
-            user.rate = data.get('rate', user.rate)
-            if data.get('password'):
-                user.set_password(data['password'])
-            db.session.commit()
-            return {"message": "Profile updated"}, 200
-        except Exception as e:
-            db.session.rollback()
-            return {"message": f"Update failed: {str(e)}"}, 500
+    if User.query.filter_by(email=data['email']).first():
+        return {"error": "Email already registered."}, 409
 
-    @jwt_required()
-    def delete(self, id):
-        user = User.query.get_or_404(id)
-        current_user = User.query.get(get_jwt_identity())
-        if user.id != current_user.id and current_user.role != 'super_admin':
-            return {"message": "Unauthorized"}, 403
-        try:
-            db.session.delete(user)
-            db.session.commit()
-            return {"message": "Profile deleted"}, 200
-        except Exception as e:
-            db.session.rollback()
-            return {"message": f"Delete failed: {str(e)}"}, 500
-
-# ------------------------ AUTH ---------------------------
-
-class AuthResource(Resource):
-    def post(self):
-        data = request.get_json()
-        user = User.query.filter_by(username=data['username']).first()
-        if user and check_password_hash(user.password, data['password']):
-            token = create_access_token(identity=user.id)
-            return {"token": token, "role": user.role}, 200
-        return {"message": "Invalid credentials"}, 401
-
-    def put(self):
-        data = request.get_json()
-        if User.query.filter_by(username=data['username']).first():
-            return {"message": "Username already exists"}, 400
+    try:
         new_user = User(
             username=data['username'],
             email=data['email'],
             role=data.get('role', 'client')
         )
-        new_user.set_password(data['password'])
-        try:
-            db.session.add(new_user)
-            db.session.commit()
-            token = create_access_token(identity=new_user.id)
-            return {"token": token, "role": new_user.role}, 201
-        except Exception as e:
-            db.session.rollback()
-            return {"message": f"Registration failed: {str(e)}"}, 500
+        new_user.password = data['password']
+        db.session.add(new_user)
+        db.session.commit()
 
-# ---------------------- PORTFOLIO -----------------------
+        return {
+            "token": secrets.token_hex(16),
+            "user": new_user.to_dict()
+        }, 201
+
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}, 400
+
+
+@app.route('/signup/client', methods=['POST'])
+def signup_client():
+    data = request.get_json()
+
+    required = ['name', 'email', 'password']
+    if not all(field in data for field in required):
+        return {"error": "Name, email, and password are required."}, 400
+
+    if Client.query.filter_by(email=data['email']).first():
+        return {"error": "Email already registered."}, 409
+
+    try:
+        new_client = Client(
+            name=data['name'],
+            email=data['email'],
+            phone=data.get('phone')
+        )
+        new_client.password = data['password']
+        db.session.add(new_client)
+        db.session.commit()
+
+        return {
+            "token": secrets.token_hex(16),
+            "client": new_client.to_dict()
+        }, 201
+
+    except Exception as e:
+        db.session.rollback()
+        return {"error": str(e)}, 400
+
+# ------------------- LOGIN -------------------
+
+@app.route('/login/user', methods=['POST'])
+def login_user():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return {"error": "Email and password are required."}, 400
+
+    user = User.query.filter_by(email=email).first()
+    if user and user.check_password(password):
+        return {
+            "token": secrets.token_hex(16),
+            "user": user.to_dict()
+        }, 200
+    return {"error": "Invalid email or password."}, 401
+
+
+@app.route('/login/client', methods=['POST'])
+def login_client():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return {"error": "Email and password are required."}, 400
+
+    client = Client.query.filter_by(email=email).first()
+    if client and client.check_password(password):
+        return {
+            "token": secrets.token_hex(16),
+            "client": client.to_dict()
+        }, 200
+    return {"error": "Invalid email or password."}, 401
+
+
+# ------------------- RESOURCES -------------------
+
+class PortfolioItemsResource(Resource):
+    def get(self):
+        items = PortfolioItem.query.all()
+        return [item.to_dict() for item in items], 200
+
+    def post(self):
+        data = request.get_json()
+        new_item = PortfolioItem(
+            user_id=data['user_id'],
+            title=data['title'],
+            description=data['description'],
+            image_url=data['image_url'],
+            category=data.get('category')
+        )
+        db.session.add(new_item)
+        db.session.commit()
+        return new_item.to_dict(), 201
+
 
 class PortfolioItemResource(Resource):
-    @jwt_required()
-    def get(self, id=None):
-        if id:
-            item = PortfolioItem.query.get_or_404(id)
-            return {
-                "id": item.id,
-                "title": item.title,
-                "image_url": item.image_url,
-                "description": item.description,
-                "category": item.category,
-                "price": item.price,
-                "rating": item.rating
-            }
-        user_id = get_jwt_identity()
-        items = PortfolioItem.query.filter_by(user_id=user_id).all()
-        return [{
-            "id": item.id,
-            "title": item.title,
-            "image_url": item.image_url,
-            "description": item.description,
-            "category": item.category,
-            "price": item.price,
-            "rating": item.rating
-        } for item in items]
+    def get(self, id):
+        item = PortfolioItem.query.get_or_404(id)
+        return item.to_dict(), 200
+
+    def patch(self, id):
+        item = PortfolioItem.query.get_or_404(id)
+        data = request.get_json()
+        for key, value in data.items():
+            setattr(item, key, value)
+        db.session.commit()
+        return item.to_dict(), 200
+
+    def delete(self, id):
+        item = PortfolioItem.query.get_or_404(id)
+        db.session.delete(item)
+        db.session.commit()
+        return {}, 204
+
+
+class BookingsResource(Resource):
+    def get(self):
+        bookings = Booking.query.all()
+        return [b.to_dict() for b in bookings], 200
 
     @jwt_required()
     def post(self):
@@ -261,69 +269,11 @@ class BookingResource(Resource):
             db.session.add(new_booking)
             db.session.commit()
 
-            creator = User.query.get(data['creatorId'])
-            if creator and creator.email:
-                msg = Message("New Booking on Artify", recipients=[creator.email])
-                msg.body = f"New booking from {new_booking.client_name} on {new_booking.date} at {new_booking.time}."
-                mail.send(msg)
+# Register routes with API
+api.add_resource(PortfolioItemsResource, '/portfolio-items')
+api.add_resource(PortfolioItemResource, '/portfolio-items/<int:id>')
+api.add_resource(BookingsResource, '/bookings')
 
-            return {"message": "Booking created", "id": new_booking.id}, 201
-        except Exception as e:
-            db.session.rollback()
-            return {"message": f"Booking creation failed: {str(e)}"}, 500
-
-    @jwt_required()
-    def patch(self, id):
-        booking = Booking.query.get_or_404(id)
-        user_id = get_jwt_identity()
-        if booking.user_id != user_id:
-            return {"message": "Unauthorized"}, 403
-        data = request.get_json()
-        try:
-            booking.status = data.get('status', booking.status)
-            db.session.commit()
-
-            client = User.query.get(booking.client_id)
-            if client and client.email:
-                msg = Message("Booking Update on Artify", recipients=[client.email])
-                msg.body = f"Your booking on {booking.date} at {booking.time} is now {booking.status}."
-                mail.send(msg)
-
-            return {"message": "Booking updated", "status": booking.status}, 200
-        except Exception as e:
-            db.session.rollback()
-            return {"message": f"Update failed: {str(e)}"}, 500
-
-# ---------------------- REVIEWS -----------------------
-
-class ReviewResource(Resource):
-    @jwt_required()
-    def post(self, booking_id):
-        data = request.get_json()
-        booking = Booking.query.get_or_404(booking_id)
-        if booking.client_id != get_jwt_identity():
-            return {"message": "Unauthorized"}, 403
-        booking.review = {
-            "rating": data.get('rating'),
-            "comment": data.get('comment')
-        }
-        try:
-            db.session.commit()
-            return {"message": "Review added"}, 200
-        except Exception as e:
-            db.session.rollback()
-            return {"message": f"Review failed: {str(e)}"}, 500
-
-# ------------------- ROUTE REGISTRATION -------------------
-
-api.add_resource(UserResource, '/users', '/users/<int:id>')
-api.add_resource(PortfolioItemResource, '/portfolio-items', '/portfolio-items/<int:id>')
-api.add_resource(PublicPortfolioItems, '/public-portfolio-items')
-api.add_resource(BookingResource, '/bookings', '/bookings/<int:id>')
-api.add_resource(ReviewResource, '/reviews/<int:booking_id>')
-api.add_resource(AuthResource, '/auth')
-
-# ------------------- MAIN -------------------
-
+# Run the app
 if __name__ == '__main__':
-    app.run(debug=True, port=5555)
+    app.run(port=5000, debug=True)

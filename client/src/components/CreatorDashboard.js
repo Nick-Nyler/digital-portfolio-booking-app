@@ -8,53 +8,14 @@ import axios from 'axios';
 function CreatorDashboard() {
   const queryClient = useQueryClient();
 
-  const { data: bookingsRaw, isLoading: bookingsLoading } = useQuery({
-    queryKey: ['creatorBookings'],
-    queryFn: () =>
-      fetch('http://localhost:5555/bookings', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      }).then((res) => res.json()),
-  });
-
-  const bookings = Array.isArray(bookingsRaw) ? bookingsRaw : [];
-
-  const { data: profile = {}, isLoading: profileLoading } = useQuery({
-    queryKey: ['creatorProfile'],
-    queryFn: () =>
-      fetch('http://localhost:5555/users', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      }).then((res) => res.json()),
-  });
-
-  const [formData, setFormData] = useState({ bio: '', skills: '', rate: '' });
-
-  const updateMutation = useMutation({
-    mutationFn: () =>
-      axios.put(`http://localhost:5555/users/${profile.id}`, formData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      }),
-    onSuccess: () => {
-      toast.success('Profile updated!');
-      queryClient.invalidateQueries(['creatorProfile']);
-    },
-    onError: (error) => toast.error(`Update failed: ${error.message}`),
-  });
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    updateMutation.mutate();
-  };
-
-  const handleStatusUpdate = (bookingId, newStatus) => {
-    axios
-      .patch(
-        `http://localhost:5555/bookings/${bookingId}`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      fetch('http://localhost:5000/portfolio-items'),
+      fetch('http://localhost:5000/bookings')
+    ])
+      .then(([itemsResponse, bookingsResponse]) =>
+        Promise.all([itemsResponse.json(), bookingsResponse.json()])
       )
       .then(() => {
         toast.success(`Booking ${newStatus}`);

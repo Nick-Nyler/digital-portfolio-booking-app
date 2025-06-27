@@ -12,13 +12,16 @@ function ClientDashboard() {
       }).then((res) => res.json()),
   });
 
-  const { data: creatorsData, isLoading: creatorsLoading } = useQuery({
-    queryKey: ['creators'],
-    queryFn: () =>
-      fetch('http://localhost:5555/users', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      }).then((res) => res.json()),
-  });
+  useEffect(() => {
+    setLoading(true);
+    fetch('http://localhost:5000/bookings/client', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    })
+      .then(response => response.json())
+      .then(data => setBookings(data))
+      .catch(error => console.error('Fetch error:', error))
+      .finally(() => setLoading(false));
+  }, []);
 
   const creators = Array.isArray(creatorsData) ? creatorsData : [];
 

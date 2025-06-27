@@ -1,83 +1,88 @@
+# server/seed.py
+
 from config import app, db
-from models import PortfolioItem, Booking, User
-from werkzeug.security import generate_password_hash
+from models import User, Client, PortfolioItem, Booking
+from datetime import datetime, date, time
 
 with app.app_context():
-    db.create_all()
+    print("🧹 Clearing old data...")
+    Booking.query.delete()
+    PortfolioItem.query.delete()
+    Client.query.delete()
+    User.query.delete()
 
-    # Create super admin
-    if not User.query.filter_by(username='superadmin').first():
-        superadmin = User(
-            username='superadmin',
-            password=generate_password_hash('admin123'),
-            email='superadmin@example.com',
-            role='super_admin'
-        )
-        db.session.add(superadmin)
+    print("👤 Creating users...")
+    user1 = User(
+        username='moreenk',
+        email='moreen@example.com',
+        bio='Passionate graphic designer.',
+        profile_pic_url='https://i.pravatar.cc/150?img=5'
+    )
+    user1.password = 'password123'
 
-    # Create creator
-    creator = User.query.filter_by(username='creator1').first()
-    if not creator:
-        creator = User(
-            username='creator1',
-            password=generate_password_hash('creator123'),
-            email='creator1@example.com',
-            role='creator',
-            bio='Passionate artist with 5+ years experience',
-            skills='Painting, Photography',
-            rate=50.0
-        )
-        db.session.add(creator)
+    user2 = User(
+        username='brianotieno',
+        email='brian@example.com',
+        bio='Freelance web developer.',
+        profile_pic_url='https://i.pravatar.cc/150?img=6'
+    )
+    user2.password = 'securepass456'
 
-    # Create client
-    client = User.query.filter_by(username='client1').first()
-    if not client:
-        client = User(
-            username='client1',
-            password=generate_password_hash('client123'),
-            email='client1@example.com',
-            role='client'
-        )
-        db.session.add(client)
+    print("👥 Creating clients...")
+    client1 = Client(
+        name='Lilian Wambui',
+        email='lilian@example.com'
+    )
+    client1.password = 'clientpass1'
 
-    db.session.commit()  # Commit users so we have their IDs
+    client2 = Client(
+        name='James Karanja',
+        email='james@example.com'
+    )
+    client2.password = 'clientpass2'
 
-    # Add portfolio items for creator
-    if not PortfolioItem.query.filter_by(title='Abstract Canvas').first():
-        items = [
-            PortfolioItem(
-                title='Abstract Canvas',
-                image_url='https://via.placeholder.com/150',
-                description='Bold abstract art',
-                category='Painting',
-                price=50.0,
-                rating=4.5,
-                user_id=creator.id
-            ),
-            PortfolioItem(
-                title='Forest Snapshot',
-                image_url='https://via.placeholder.com/150',
-                description='Nature photography',
-                category='Photography',
-                price=30.0,
-                rating=4.0,
-                user_id=creator.id
-            )
-        ]
-        db.session.add_all(items)
-        db.session.commit()
+    print("🖼️ Creating portfolio items...")
+    portfolio1 = PortfolioItem(
+        user=user1,
+        title='Wedding Shoot',
+        description='Captured special moments at a wedding ceremony.',
+        image_url='https://source.unsplash.com/featured/?wedding',
+        category='Photography'
+    )
 
-    # Add booking if not exists
-    if not Booking.query.filter_by(date='2025-06-26', client_id=client.id).first():
-        booking = Booking(
-            date='2025-06-26',
-            time='14:00',
-            client_name='John Doe',
-            user_id=creator.id,
-            client_id=client.id,
-            status='pending'
-        )
-        db.session.add(booking)
-        db.session.commit()
+    portfolio2 = PortfolioItem(
+        user=user2,
+        title='E-commerce Website',
+        description='Built a fully responsive e-commerce frontend.',
+        image_url='https://source.unsplash.com/featured/?website',
+        category='Web Development'
+    )
 
-    print("✅ Database seeded successfully.")
+    print("📅 Creating bookings...")
+    booking1 = Booking(
+        user=user1,
+        client=client1,
+        date=date.today(),
+        time=time(14, 0),
+        status='confirmed',
+        notes='Photo shoot at Arboretum.'
+    )
+
+    booking2 = Booking(
+        user=user2,
+        client=client2,
+        date=date.today(),
+        time=time(10, 30),
+        status='pending',
+        notes='Meeting to discuss web project.'
+    )
+
+    print("💾 Saving to database...")
+    db.session.add_all([
+        user1, user2,
+        client1, client2,
+        portfolio1, portfolio2,
+        booking1, booking2
+    ])
+    db.session.commit()
+    print("✅ Done seeding!")
