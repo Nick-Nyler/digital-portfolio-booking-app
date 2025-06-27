@@ -1,7 +1,7 @@
 
-# CreatorHub 
+# Artify 
 
-CreatorHub is a full-stack freelance platform that connects **clients** and **creative professionals** (creators). It allows creators to showcase their portfolios, apply for jobs, and get hired, while clients can post jobs and manage applicants. Built with **Flask** (backend) and **React** (frontend), it also integrates **JWT Authentication**, **role-based access**, and **MPesa payment hooks** (placeholder in MVP).
+Artify is a full-stack freelance platform that connects **clients** and **creative professionals** (creators). It allows creators to showcase their portfolios, apply for jobs, and get hired, while clients can post jobs and manage applicants. Built with **Flask** (backend) and **React** (frontend), it also integrates **JWT Authentication**, **role-based access**, and **MPesa payment hooks** (placeholder in MVP).
 
 ---
 
@@ -106,7 +106,7 @@ npm start
 ## Project Structure
 
 ```
-creatorhub-platform/
+Artify/
 ├── client/              # React frontend
 │   ├── src/
 │   │   ├── components/
