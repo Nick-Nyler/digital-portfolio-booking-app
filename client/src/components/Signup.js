@@ -3,6 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
+import { motion } from 'framer-motion';
 
 const SignupSchema = Yup.object().shape({
   role: Yup.string().oneOf(['user', 'client']).required('Role is required'),
@@ -65,8 +66,12 @@ function Signup({ setIsAuthenticated }) {
   };
 
   return (
-    <div className="detail-container">
-      <h2>Sign Up</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto px-4 py-8"
+    >
+      <h2 className="text-3xl font-bold mb-6 text-center">Sign Up</h2>
       <Formik
         initialValues={{
           role: 'user',
@@ -138,7 +143,7 @@ function Signup({ setIsAuthenticated }) {
           </Form>
         )}
       </Formik>
-    </div>
+    </motion.div>
   );
 }
 

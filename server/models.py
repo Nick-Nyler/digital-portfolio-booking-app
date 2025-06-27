@@ -1,7 +1,5 @@
 from config import db
-from sqlalchemy_serializer import SerializerMixin
-from datetime import datetime
-import bcrypt
+from werkzeug.security import generate_password_hash
 
 
 class User(db.Model, SerializerMixin):
@@ -9,6 +7,7 @@ class User(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     _password_hash = db.Column(db.String(128), nullable=False)
     bio = db.Column(db.Text)

@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { motion } from 'framer-motion';
+import axios from 'axios';
 
 function CreatorDashboard() {
-  const [portfolioItems, setPortfolioItems] = useState([]);
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setLoading(true);
@@ -14,38 +17,94 @@ function CreatorDashboard() {
       .then(([itemsResponse, bookingsResponse]) =>
         Promise.all([itemsResponse.json(), bookingsResponse.json()])
       )
-      .then(([itemsData, bookingsData]) => {
-        setPortfolioItems(itemsData);
-        setBookings(bookingsData);
+      .then(() => {
+        toast.success(`Booking ${newStatus}`);
+        queryClient.invalidateQueries(['creatorBookings']);
       })
-      .catch(error => console.error('Fetch error:', error))
-      .finally(() => setLoading(false));
-  }, []);
+      .catch(() => {
+        toast.error('Failed to update booking status');
+      });
+  };
 
-  if (loading) return <div className="dashboard-container"><p>Loading...</p></div>;
+  if (bookingsLoading || profileLoading) return <p className="text-center">Loading...</p>;
 
   return (
-    <div className="dashboard-container">
-      <h2>Your Portfolio Items</h2>
-      <ul>
-        {portfolioItems.map(item => (
-          <li key={item.id}>
-            <h3>{item.title}</h3>
-            <button className="edit-btn">Edit</button>
-            <button className="delete-btn">Delete</button>
-          </li>
-        ))}
-      </ul>
-      <h2>Your Bookings</h2>
-      <ul>
-        {bookings.map(booking => (
-          <li key={booking.id}>
-            <p>Date: {booking.date}, Time: {booking.time}, Status: {booking.status}</p>
-            <button className="accept-btn">Accept</button>
-            <button className="decline-btn">Decline</button>
-          </li>
-        ))}
-      </ul>
+    <div className="container mx-auto px-4 py-8">
+      <h2 className="text-3xl font-bold mb-6">Creator Dashboard</h2>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
+        <h3 className="text-2xl font-semibold mb-4">Your Profile</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            name="bio"
+            placeholder="Bio"
+            value={formData.bio}
+            onChange={handleChange}
+            className="w-full p-2 rounded border border-gray-300"
+          />
+          <input
+            name="skills"
+            placeholder="Skills (e.g. painting, editing)"
+            value={formData.skills}
+            onChange={handleChange}
+            className="w-full p-2 rounded border border-gray-300"
+          />
+          <input
+            name="rate"
+            placeholder="Rate per hour ($)"
+            value={formData.rate}
+            onChange={handleChange}
+            className="w-full p-2 rounded border border-gray-300"
+          />
+          <button
+            type="submit"
+            className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+          >
+            Save Profile
+          </button>
+        </form>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <h3 className="text-2xl font-semibold mb-4">Your Bookings</h3>
+        {bookings.length === 0 ? (
+          <p className="text-gray-300">No bookings yet.</p>
+        ) : (
+          bookings.map((b) => (
+            <div key={b.id} className="bg-white/10 backdrop-blur-md p-4 rounded-lg mb-3">
+              <p><strong>Date:</strong> {b.date}</p>
+              <p><strong>Time:</strong> {b.time}</p>
+              <p><strong>Client:</strong> {b.client_name}</p>
+              <p><strong>Status:</strong> {b.status}</p>
+              {b.status === 'pending' && (
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => handleStatusUpdate(b.id, 'accepted')}
+                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate(b.id, 'denied')}
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                  >
+                    Deny
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-10">
+        <Link
+          to="/pricing"
+          className="inline-block bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+        >
+          View Pricing Plans
+        </Link>
+      </motion.div>
     </div>
   );
 }

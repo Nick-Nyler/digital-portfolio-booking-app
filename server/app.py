@@ -9,8 +9,8 @@ import secrets
 CORS(app) 
 
 @app.route('/')
-def home():
-    return {"message": "Welcome to the Digital Portfolio Booking API"}, 200
+def index():
+    return "Welcome to the Artify API!"
 
 # ------------------- SIGN UP -------------------
 
@@ -29,8 +29,7 @@ def signup_user():
         new_user = User(
             username=data['username'],
             email=data['email'],
-            bio=data.get('bio'),
-            profile_pic_url=data.get('profile_pic_url')
+            role=data.get('role', 'client')
         )
         new_user.password = data['password']
         db.session.add(new_user)
@@ -160,19 +159,115 @@ class BookingsResource(Resource):
         bookings = Booking.query.all()
         return [b.to_dict() for b in bookings], 200
 
+    @jwt_required()
     def post(self):
         data = request.get_json()
+        user_id = get_jwt_identity()
+        new_item = PortfolioItem(
+            title=data['title'],
+            image_url=data['image_url'],
+            description=data.get('description'),
+            category=data.get('category'),
+            price=data.get('price', 0.0),
+            rating=data.get('rating', 0.0),
+            user_id=user_id
+        )
+        try:
+            db.session.add(new_item)
+            db.session.commit()
+            return {"message": "Item created", "id": new_item.id}, 201
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Creation failed: {str(e)}"}, 500
+
+    @jwt_required()
+    def put(self, id):
+        item = PortfolioItem.query.get_or_404(id)
+        if item.user_id != get_jwt_identity():
+            return {"message": "Unauthorized"}, 403
+        data = request.get_json()
+        try:
+            item.title = data.get('title', item.title)
+            item.image_url = data.get('image_url', item.image_url)
+            item.description = data.get('description', item.description)
+            item.category = data.get('category', item.category)
+            item.price = data.get('price', item.price)
+            item.rating = data.get('rating', item.rating)
+            db.session.commit()
+            return {"message": "Item updated"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Update failed: {str(e)}"}, 500
+
+    @jwt_required()
+    def delete(self, id):
+        item = PortfolioItem.query.get_or_404(id)
+        if item.user_id != get_jwt_identity():
+            return {"message": "Unauthorized"}, 403
+        try:
+            db.session.delete(item)
+            db.session.commit()
+            return {"message": "Item deleted"}, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"message": f"Delete failed: {str(e)}"}, 500
+
+class PublicPortfolioItems(Resource):
+    def get(self):
+        items = PortfolioItem.query.all()
+        return [{
+            "id": item.id,
+            "title": item.title,
+            "image_url": item.image_url,
+            "description": item.description,
+            "category": item.category,
+            "price": item.price,
+            "rating": item.rating,
+            "user_id": item.user_id,
+            "creator": item.user.username if item.user else "Unknown"
+        } for item in items]
+
+# ---------------------- BOOKINGS -----------------------
+
+class BookingResource(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+
+        if user.role == 'creator':
+            bookings = Booking.query.filter_by(user_id=user_id).all()
+        else:
+            bookings = Booking.query.filter_by(client_id=user_id).all()
+
+        return [{
+            "id": b.id,
+            "date": b.date,
+            "time": b.time,
+            "client_name": b.client_name,
+            "status": b.status,
+            "review": b.review,
+            "creator_id": b.user_id,
+            "client_id": b.client_id,
+            "creator": User.query.get(b.user_id).username
+        } for b in bookings]
+
+    @jwt_required()
+    def post(self):
+        data = request.get_json()
+        client_id = get_jwt_identity()
+
         new_booking = Booking(
-            user_id=data['user_id'],
-            client_id=data['client_id'],
             date=data['date'],
             time=data['time'],
-            status=data.get('status', 'pending'),
-            notes=data.get('notes')
+            client_name=data['clientName'],
+            status='pending',
+            user_id=data['creatorId'],
+            client_id=client_id
         )
-        db.session.add(new_booking)
-        db.session.commit()
-        return new_booking.to_dict(), 201
+        try:
+            db.session.add(new_booking)
+            db.session.commit()
 
 # Register routes with API
 api.add_resource(PortfolioItemsResource, '/portfolio-items')

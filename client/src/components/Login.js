@@ -4,6 +4,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
+import { motion } from 'framer-motion';
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
@@ -34,6 +35,8 @@ function Login({ setIsAuthenticated }) {
       })
       .then((data) => {
         localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.role);
+
         setIsAuthenticated(true);
         toast.success('Logged in successfully!');
 
@@ -48,8 +51,12 @@ function Login({ setIsAuthenticated }) {
   };
 
   return (
-    <div className="detail-container">
-      <h2>Sign In</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto px-4 py-8"
+    >
+      <h2 className="text-3xl font-bold mb-6 text-center">Sign In</h2>
       <Formik
         initialValues={{ email: '', password: '', role: 'user' }}
         validationSchema={LoginSchema}
@@ -62,10 +69,22 @@ function Login({ setIsAuthenticated }) {
               <Field type="email" name="email" className="input-field" />
               <ErrorMessage name="email" component="div" className="error" />
             </div>
-            <div>
-              <label htmlFor="password">Password</label>
-              <Field type="password" name="password" className="input-field" />
-              <ErrorMessage name="password" component="div" className="error" />
+
+            {/* Password */}
+            <div className="mb-6">
+              <label htmlFor="password" className="block text-white mb-2">
+                Password
+              </label>
+              <Field
+                type="password"
+                name="password"
+                className="w-full p-2 rounded-lg border border-gray-300 text-black"
+              />
+              <ErrorMessage
+                name="password"
+                component="div"
+                className="text-red-300 text-sm mt-1"
+              />
             </div>
             <div>
               <label htmlFor="role">Login as:</label>
@@ -77,11 +96,11 @@ function Login({ setIsAuthenticated }) {
             </div>
             <button type="submit" disabled={isSubmitting} className="submit-btn">
               Sign In
-            </button>
+            </motion.button>
           </Form>
         )}
       </Formik>
-    </div>
+    </motion.div>
   );
 }
 

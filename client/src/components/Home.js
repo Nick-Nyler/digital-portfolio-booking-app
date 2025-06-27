@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
 
 function Home() {
-  const [portfolioItems, setPortfolioItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: portfolioItems = [], isLoading, error } = useQuery({
+    queryKey: ['portfolioItems'],
+    queryFn: () => fetch('http://localhost:5555/portfolio-items').then(res => res.json()),
+    retry: 1,
+  });
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [priceRange, setPriceRange] = useState([0, 100]);
+  const [rating, setRating] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -20,43 +25,86 @@ function Home() {
 
   const filteredItems = portfolioItems.filter(item =>
     item.title.toLowerCase().includes(search.toLowerCase()) &&
-    (category === '' || item.category === category)
-  );
+    (category === '' || item.category === category) &&
+    item.price >= priceRange[0] && item.price <= priceRange[1] &&
+    (!rating || item.rating >= rating)
+  ) : [];
 
   return (
-    <div className="home-container">
-      <h1>Your Creative Work, One Platform</h1>
-      <p>Showcase your portfolio, manage client bookings, and grow your creative business.</p>
-      <div>
-        <button>Start Your Portfolio</button>
-        <button className="explore-btn">Explore Creators</button>
-      </div>
-      <input
-        type="text"
-        placeholder="Search by title..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="input-field"
-      />
-      <select value={category} onChange={(e) => setCategory(e.target.value)} className="input-field">
-        <option value="">All Categories</option>
-        <option value="Painting">Painting</option>
-        <option value="Photography">Photography</option>
-      </select>
-      <div className="gallery">
-        {loading ? (
-          Array(4).fill().map((_, i) => (
-            <div key={i}><Skeleton height={150} /></div>
-          ))
-        ) : filteredItems.map(item => (
-          <Link to={`/portfolio/${item.id}`} key={item.id}>
-            <div>
-              <img src={item.image_url} alt={item.title} />
-              <h3>{item.title}</h3>
-              <p>{item.category}</p>
-            </div>
-          </Link>
-        ))}
+    <div className="min-h-screen">
+      <motion.section
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="text-center py-16 bg-gradient-to-b from-purple-800 to-blue-700"
+      >
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">Welcome to Artify</h1>
+        <p className="text-lg mb-6">Unleash your creativity with stunning portfolios and seamless bookings.</p>
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-orange-600 transition"
+        >
+          Start Creating
+        </motion.button>
+      </motion.section>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <input
+            type="text"
+            placeholder="Search by title..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="p-2 rounded-lg border border-gray-300 text-black"
+          />
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="p-2 rounded-lg border border-gray-300 text-black"
+          >
+            <option value="">All Categories</option>
+            <option value="Painting">Painting</option>
+            <option value="Photography">Photography</option>
+            <option value="Sculpture">Sculpture</option>
+          </select>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={priceRange[0]}
+            onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
+            className="p-2 rounded-lg border border-gray-300 text-black"
+          />
+          <input
+            type="range"
+            min="0"
+            max="5"
+            value={rating}
+            onChange={(e) => setRating(parseInt(e.target.value))}
+            className="p-2 rounded-lg border border-gray-300 text-black"
+          />
+        </div>
+        {isLoading && <p className="text-center">Loading...</p>}
+        {error && <p className="text-center text-red-300">Error loading items: {error.message}</p>}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredItems.map(item => (
+            <motion.div
+              key={item.id}
+              whileHover={{ scale: 1.05, rotate: 1 }}
+              className="bg-white/10 backdrop-blur-md rounded-lg overflow-hidden shadow-lg"
+            >
+              <Link to={`/portfolio/${item.id}`}>
+                <img src={item.image_url} alt={item.title} className="w-full h-48 object-cover" />
+                <div className="p-4">
+                  <h3 className="text-xl font-semibold text-white">{item.title}</h3>
+                  <p className="text-gray-300">{item.category}</p>
+                  <p>Price: ${item.price}</p>
+                  <p>Rating: {item.rating || 'N/A'}</p>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );
