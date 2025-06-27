@@ -29,8 +29,7 @@ function BookingForm() {
 
     const token = localStorage.getItem('token'); // your JWT
 
-  const handleSubmit = (values) => {
-    fetch('http://localhost:5000/bookings', {
+    fetch('http://localhost:5555/bookings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

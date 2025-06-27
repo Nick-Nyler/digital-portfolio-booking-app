@@ -50,6 +50,8 @@ function App() {
 
           {/* Booking Routes */}
           <Route path="/book/:creatorId" element={<PrivateRoute><BookingForm /></PrivateRoute>} />
+          <Route path="/booking/:creatorId" element={<BookingForm />} />
+
           <Route path="/booking/confirm" element={<PrivateRoute><BookingConfirm /></PrivateRoute>} />
 
           {/* Rate Card Route */}

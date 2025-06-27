@@ -1,3 +1,4 @@
+// src/components/CreatorDashboard.js
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -7,64 +8,131 @@ import axios from 'axios';
 
 function CreatorDashboard() {
   const queryClient = useQueryClient();
+  const [formData, setFormData] = useState({ bio: '', skills: '', rate: '' });
 
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      fetch('http://localhost:5000/portfolio-items'),
-      fetch('http://localhost:5000/bookings')
-    ])
-      .then(([itemsResponse, bookingsResponse]) =>
-        Promise.all([itemsResponse.json(), bookingsResponse.json()])
+  // ── Fetch Creator Profile ─────────────────────
+  const { data: profile, isLoading: profileLoading, isError: profileError } = useQuery({
+    queryKey: ['creatorProfile'],
+    queryFn: () =>
+      fetch('http://localhost:5555/users', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      }).then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch profile');
+        return res.json();
+      }),
+    enabled: !!localStorage.getItem('token'),
+    onSuccess: (data) => {
+      setFormData({
+        bio: data.bio || '',
+        skills: data.skills || '',
+        rate: data.rate || '',
+      });
+    },
+  });
+
+  // ── Fetch Creator Bookings ─────────────────────
+  const { data: bookingsRaw, isLoading: bookingsLoading, isError: bookingsError } = useQuery({
+    queryKey: ['creatorBookings'],
+    queryFn: () =>
+      fetch('http://localhost:5555/bookings', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      }).then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch bookings');
+        return res.json();
+      }),
+  });
+  const bookings = Array.isArray(bookingsRaw) ? bookingsRaw : [];
+
+  // ── Handle Profile Input ─────────────────────
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  // ── Update Creator Profile ─────────────────────
+  const updateMutation = useMutation({
+    mutationFn: () =>
+      axios.put(`http://localhost:5555/users/${profile?.id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      }),
+    onSuccess: () => {
+      toast.success('Profile updated!');
+      queryClient.invalidateQueries(['creatorProfile']);
+    },
+    onError: (err) => {
+      toast.error(`Update failed: ${err.response?.data?.message || err.message}`);
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!profile?.id) return toast.error('No user ID found');
+    updateMutation.mutate();
+  };
+
+  // ── Handle Booking Status ─────────────────────
+  const handleStatusUpdate = (bookingId, newStatus) => {
+    axios
+      .patch(
+        `http://localhost:5555/bookings/${bookingId}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       )
       .then(() => {
         toast.success(`Booking ${newStatus}`);
         queryClient.invalidateQueries(['creatorBookings']);
       })
-      .catch(() => {
-        toast.error('Failed to update booking status');
-      });
+      .catch(() => toast.error('Failed to update booking status'));
   };
 
-  if (bookingsLoading || profileLoading) return <p className="text-center">Loading...</p>;
+  // ── Loading / Error ─────────────────────
+  if (profileLoading || bookingsLoading) return <p className="text-center">Loading…</p>;
+  if (profileError || bookingsError) return <p className="text-center text-red-500">Error loading data.</p>;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 text-white">
       <h2 className="text-3xl font-bold mb-6">Creator Dashboard</h2>
 
+      {/* ── Profile Edit Form ───────────────────── */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
         <h3 className="text-2xl font-semibold mb-4">Your Profile</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
           <input
             name="bio"
             placeholder="Bio"
             value={formData.bio}
             onChange={handleChange}
-            className="w-full p-2 rounded border border-gray-300"
+            className="w-full p-2 rounded border border-gray-300 text-black"
           />
           <input
             name="skills"
-            placeholder="Skills (e.g. painting, editing)"
+            placeholder="Skills (e.g. photography, editing)"
             value={formData.skills}
             onChange={handleChange}
-            className="w-full p-2 rounded border border-gray-300"
+            className="w-full p-2 rounded border border-gray-300 text-black"
           />
           <input
+            type="number"
             name="rate"
             placeholder="Rate per hour ($)"
             value={formData.rate}
             onChange={handleChange}
-            className="w-full p-2 rounded border border-gray-300"
+            className="w-full p-2 rounded border border-gray-300 text-black"
           />
           <button
             type="submit"
             className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+            disabled={updateMutation.isLoading}
           >
-            Save Profile
+            {updateMutation.isLoading ? 'Saving...' : 'Save Profile'}
           </button>
         </form>
       </motion.div>
 
+      {/* ── Bookings Section ───────────────────── */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h3 className="text-2xl font-semibold mb-4">Your Bookings</h3>
         {bookings.length === 0 ? (
@@ -97,6 +165,7 @@ function CreatorDashboard() {
         )}
       </motion.div>
 
+      {/* ── Pricing CTA ───────────────────── */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-10">
         <Link
           to="/pricing"
