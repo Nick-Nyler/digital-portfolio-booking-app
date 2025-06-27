@@ -1,11 +1,11 @@
 
-# CreatorHub 🎨💼
+# CreatorHub 
 
 CreatorHub is a full-stack freelance platform that connects **clients** and **creative professionals** (creators). It allows creators to showcase their portfolios, apply for jobs, and get hired, while clients can post jobs and manage applicants. Built with **Flask** (backend) and **React** (frontend), it also integrates **JWT Authentication**, **role-based access**, and **MPesa payment hooks** (placeholder in MVP).
 
 ---
 
-## 📌 Table of Contents
+## Table of Contents
 
 - [Features](#features)
 - [Technologies Used](#technologies-used)
@@ -17,21 +17,21 @@ CreatorHub is a full-stack freelance platform that connects **clients** and **cr
 
 ---
 
-## ✅ Features
+## Features
 
-### 🧑‍🎨 For Creators:
+###  For Creators:
 - Signup/Login
 - Edit profile and upload portfolio items
 - Browse job listings
 - Apply for jobs
 - View application history
 
-### 🧑‍💼 For Clients:
+### For Clients:
 - Signup/Login
 - Post job opportunities
 - View applicants for each job
 
-### ⚙️ Shared:
+### Shared:
 - Role-based redirects (Creator, Client, Admin)
 - JWT-based protected routes
 - MPesa integration placeholder
@@ -40,7 +40,7 @@ CreatorHub is a full-stack freelance platform that connects **clients** and **cr
 
 ---
 
-## 🛠 Technologies Used
+## Technologies Used
 
 **Frontend:**
 - React 18+
@@ -61,7 +61,7 @@ CreatorHub is a full-stack freelance platform that connects **clients** and **cr
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the repo
 ```bash
@@ -103,7 +103,7 @@ npm start
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 creatorhub-platform/
@@ -123,7 +123,7 @@ creatorhub-platform/
 
 ---
 
-## 🌱 Seed Data
+## Seed Data
 
 The backend includes test users with strong passwords like:
 
@@ -139,7 +139,7 @@ Use these for initial logins, or create new users via the signup form.
 
 ---
 
-## 👨‍💻 Contributors
+## Contributors
 
 - **Nixon Ochieng**
 - **Ahmed Bwire**
@@ -148,7 +148,7 @@ Use these for initial logins, or create new users via the signup form.
 
 ---
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 - Real MPesa integration via Daraja API
 - Admin dashboard for platform control
@@ -158,6 +158,6 @@ Use these for initial logins, or create new users via the signup form.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed for educational use under MIT. You're welcome to build on it.
