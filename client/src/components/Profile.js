@@ -7,7 +7,7 @@ import axios from 'axios';
 function Profile() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: ['user'],
-    queryFn: () => fetch('http://localhost:5555/user', {
+    queryFn: () => fetch('https://artify-api-pkxy.onrender.com/user', {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
     }).then(res => res.json()),
     retry: 1,
@@ -15,7 +15,7 @@ function Profile() {
 
   const [editData, setEditData] = useState({ email: '', password: '' });
   const updateMutation = useMutation({
-    mutationFn: (data) => axios.put('http://localhost:5555/user', data, {
+    mutationFn: (data) => axios.put('https://artify-api-pkxy.onrender.com/user', data, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
     }),
     onSuccess: () => toast.success('Profile updated!'),

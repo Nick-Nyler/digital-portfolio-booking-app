@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 function Creators() {
   const { data: creators = [], isLoading, error } = useQuery({
     queryKey: ['creators'],
-    queryFn: () => fetch('http://localhost:5555/users').then(res => res.json()),
+    queryFn: () => fetch('https://artify-api-pkxy.onrender.com/users').then(res => res.json()),
     retry: 1,
   });
 

@@ -25,7 +25,7 @@ function Signup({ setIsAuthenticated }) {
   const navigate = useNavigate();
 
   const handleSubmit = (values, { setSubmitting }) => {
-    fetch('http://localhost:5555/auth', {
+    fetch('https://artify-api-pkxy.onrender.com/auth', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),

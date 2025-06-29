@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 function Home() {
   const { data: portfolioItems = [], isLoading, error } = useQuery({
     queryKey: ['portfolioItems'],
-    queryFn: () => fetch('http://localhost:5555/portfolio-items').then(res => res.json()),
+    queryFn: () => fetch('https://artify-api-pkxy.onrender.com/portfolio-items').then(res => res.json()),
     retry: 1,
   });
   const [search, setSearch] = useState('');

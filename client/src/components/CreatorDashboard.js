@@ -14,7 +14,7 @@ function CreatorDashboard() {
   const { data: profile, isLoading: profileLoading, isError: profileError } = useQuery({
     queryKey: ['creatorProfile'],
     queryFn: () =>
-      fetch('http://localhost:5555/users', {
+      fetch('https://artify-api-pkxy.onrender.com/users', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
@@ -36,7 +36,7 @@ function CreatorDashboard() {
   const { data: bookingsRaw, isLoading: bookingsLoading, isError: bookingsError } = useQuery({
     queryKey: ['creatorBookings'],
     queryFn: () =>
-      fetch('http://localhost:5555/bookings', {
+      fetch('https://artify-api-pkxy.onrender.com/bookings', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       }).then((res) => {
         if (!res.ok) throw new Error('Failed to fetch bookings');
@@ -53,7 +53,7 @@ function CreatorDashboard() {
   // ── Update Creator Profile ─────────────────────
   const updateMutation = useMutation({
     mutationFn: () =>
-      axios.put(`http://localhost:5555/users/${profile?.id}`, formData, {
+      axios.put(`https://artify-api-pkxy.onrender.com/users/${profile?.id}`, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
@@ -77,7 +77,7 @@ function CreatorDashboard() {
   const handleStatusUpdate = (bookingId, newStatus) => {
     axios
       .patch(
-        `http://localhost:5555/bookings/${bookingId}`,
+        `https://artify-api-pkxy.onrender.com/bookings/${bookingId}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       )

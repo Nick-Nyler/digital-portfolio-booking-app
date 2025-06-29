@@ -9,7 +9,7 @@ function RateCard() {
   const { data: item, isLoading, error } = useQuery({
     queryKey: ['portfolioItem', id],
     queryFn: () =>
-      fetch(`http://localhost:5555/portfolio-items/${id}`, {
+      fetch(`https://artify-api-pkxy.onrender.com/portfolio-items/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       }).then(res => res.json()),
   });

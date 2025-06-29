@@ -8,7 +8,7 @@ import axios from 'axios';
 function CalendarComponent() {
   const { data: bookings = [], isLoading, error } = useQuery({
     queryKey: ['bookings'],
-    queryFn: () => fetch('http://localhost:5555/bookings', {
+    queryFn: () => fetch('https://artify-api-pkxy.onrender.com/bookings', {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
     }).then(res => res.json()),
     retry: 1,
@@ -16,7 +16,7 @@ function CalendarComponent() {
 
   const [availableDates, setAvailableDates] = useState([]);
   const updateMutation = useMutation({
-    mutationFn: (data) => axios.patch(`http://localhost:5555/bookings/${data.id}`, data, {
+    mutationFn: (data) => axios.patch(`https://artify-api-pkxy.onrender.com/bookings/${data.id}`, data, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
     }),
     onSuccess: () => toast.success('Availability updated!'),

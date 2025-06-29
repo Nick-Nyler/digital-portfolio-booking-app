@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5555';
+const API = process.env.REACT_APP_API_URL || 'https://artify-api-pkxy.onrender.com';
 
 function PortfolioItemDetail() {
   const { id } = useParams();

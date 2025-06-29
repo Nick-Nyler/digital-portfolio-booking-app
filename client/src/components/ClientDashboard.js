@@ -12,7 +12,7 @@ function ClientDashboard() {
   const { data: bookingsData = [], isLoading: bookingsLoading, isError: bookingsError } = useQuery({
     queryKey: ['clientBookings'],
     queryFn: () =>
-      fetch('http://localhost:5555/bookings', {
+      fetch('https://artify-api-pkxy.onrender.com/bookings', {
         headers: { Authorization: `Bearer ${token}` },
       }).then((res) => res.json()),
   });
@@ -21,7 +21,7 @@ function ClientDashboard() {
   const { data: creatorsData = [], isLoading: creatorsLoading } = useQuery({
     queryKey: ['creators'],
     queryFn: () =>
-      fetch('http://localhost:5555/users?role=creator', {
+      fetch('https://artify-api-pkxy.onrender.com/users?role=creator', {
         headers: { Authorization: `Bearer ${token}` },
       }).then((res) => {
         if (!res.ok) throw new Error('Failed to fetch creators');

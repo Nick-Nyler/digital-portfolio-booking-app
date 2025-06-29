@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5555';
+const API = process.env.REACT_APP_API_URL || 'https://artify-api-pkxy.onrender.com';
 
 function PortfolioDetail() {
   const { id: creatorId } = useParams();
