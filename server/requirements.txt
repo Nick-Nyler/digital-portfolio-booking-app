@@ -4,11 +4,11 @@ Flask-Migrate==4.0.5
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
 python-dotenv==1.0.1
-psycopg2-binary==2.9.9
+psycopg[binary]>=3.1.0
 bcrypt==4.1.2
 SQLAlchemy>=2.0.31,<3.0
 PyJWT==2.8.0
 sqlalchemy_serializer==1.4.1
-Flask-JWT-Extended==4.7.1   # or whatever the latest 4.x is
+Flask-JWT-Extended==4.7.1
 Flask-Mail==0.9.1
-gunicorn
+gunicorn==23.0.0
