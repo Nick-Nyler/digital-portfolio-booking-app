@@ -1,3 +1,4 @@
+// src/components/ClientDashboard.js
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -7,7 +8,7 @@ function ClientDashboard() {
   const token = localStorage.getItem('token');
 
   // Fetch client bookings
-  const { data: bookingsData, isLoading: bookingsLoading } = useQuery({
+  const { data: bookingsData = [], isLoading: bookingsLoading, isError: bookingsError } = useQuery({
     queryKey: ['clientBookings'],
     queryFn: () =>
       fetch('http://localhost:5555/bookings', {
@@ -15,43 +16,31 @@ function ClientDashboard() {
       }).then((res) => res.json()),
   });
 
-  // Fetch creators list
-const { data: creatorsData = [], isLoading: creatorsLoading, isError: creatorsError } = useQuery({
-  queryKey: ['creators'],
-  queryFn: () =>
-    fetch('http://localhost:5555/users?role=creator', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    }).then((res) => {
-      if (!res.ok) throw new Error('Failed to fetch creators');
-      return res.json();
-    }),
-});
-  // Safely fallback to empty arrays
-  const bookings = Array.isArray(bookingsData) ? bookingsData : [];
-  const creators = Array.isArray(creatorsData) ? creatorsData : [];
+  // Fetch creators list (only data + loading)
+  const { data: creatorsData = [], isLoading: creatorsLoading } = useQuery({
+    queryKey: ['creators'],
+    queryFn: () =>
+      fetch('http://localhost:5555/users?role=creator', {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch creators');
+        return res.json();
+      }),
+  });
 
-  // Handle loading
   if (bookingsLoading || creatorsLoading) {
     return <p className="text-center text-white">Loading...</p>;
   }
 
-  // Handle errors
-  if (!Array.isArray(bookingsData)) {
+  if (bookingsError) {
     return (
       <p className="text-red-500 text-center">
-        Failed to load bookings: {bookingsData?.message || 'Unknown error'}
+        Failed to load bookings: {bookingsError.message || 'Unknown error'}
       </p>
     );
   }
 
-  if (!Array.isArray(creatorsData)) {
-    return (
-      <p className="text-red-500 text-center">
-        Failed to load creators: {creatorsData?.message || 'Unknown error'}
-      </p>
-    );
-  }
-
+  // bookingsData & creatorsData are arrays thanks to default values
   return (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold mb-6">Client Dashboard</h2>
@@ -59,10 +48,10 @@ const { data: creatorsData = [], isLoading: creatorsLoading, isError: creatorsEr
       {/* --- Bookings Section --- */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-10">
         <h3 className="text-2xl font-semibold mb-4">Your Bookings</h3>
-        {bookings.length === 0 ? (
+        {bookingsData.length === 0 ? (
           <p className="text-gray-300">You have no bookings yet.</p>
         ) : (
-          bookings.map((b) => (
+          bookingsData.map((b) => (
             <div
               key={b.id}
               className="bg-white/10 backdrop-blur-md p-4 rounded-lg mb-3 text-white"
@@ -83,7 +72,7 @@ const { data: creatorsData = [], isLoading: creatorsLoading, isError: creatorsEr
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h3 className="text-2xl font-semibold mb-4">Available Creators</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {creators.map((creator) => (
+          {creatorsData.map((creator) => (
             <div
               key={creator.id}
               className="bg-white/10 backdrop-blur-md p-4 rounded-lg text-white"
@@ -111,16 +100,6 @@ const { data: creatorsData = [], isLoading: creatorsLoading, isError: creatorsEr
             </div>
           ))}
         </div>
-      </motion.div>
-
-      {/* --- Pricing --- */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-10 text-center">
-        <Link
-          to="/pricing"
-          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-        >
-          View Pricing Plans
-        </Link>
       </motion.div>
     </div>
   );

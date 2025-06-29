@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash
 with app.app_context():
     db.create_all()
 
-    # Create super admin
+    # Super admin
     if not User.query.filter_by(username='superadmin').first():
         superadmin = User(
             username='superadmin',
@@ -15,7 +15,7 @@ with app.app_context():
         )
         db.session.add(superadmin)
 
-    # Create creator
+    # Creator
     creator = User.query.filter_by(username='creator1').first()
     if not creator:
         creator = User(
@@ -29,7 +29,7 @@ with app.app_context():
         )
         db.session.add(creator)
 
-    # Create client
+    # Client
     client = User.query.filter_by(username='client1').first()
     if not client:
         client = User(
@@ -40,9 +40,9 @@ with app.app_context():
         )
         db.session.add(client)
 
-    db.session.commit()  # Commit users so we have their IDs
+    db.session.commit()
 
-    # Add portfolio items for creator
+    # Portfolio items
     if not PortfolioItem.query.filter_by(title='Abstract Canvas').first():
         items = [
             PortfolioItem(
@@ -67,7 +67,7 @@ with app.app_context():
         db.session.add_all(items)
         db.session.commit()
 
-    # Add booking if not exists
+    # Booking
     if not Booking.query.filter_by(date='2025-06-26', client_id=client.id).first():
         booking = Booking(
             date='2025-06-26',
