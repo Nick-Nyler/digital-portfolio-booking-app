@@ -16,8 +16,6 @@ import Profile from './components/Profile';
 import Calendar from './components/Calendar';
 import RateCard from './components/RateCard';
 
-
-
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" replace />;
@@ -27,14 +25,13 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsAuthenticated(!!token);
+    setIsAuthenticated(!!localStorage.getItem('token'));
   }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
       <NavBar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
-      
+
       <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -48,31 +45,24 @@ function App() {
           <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/signup" element={<Signup setIsAuthenticated={setIsAuthenticated} />} />
 
-          {/* Booking Routes */}
           <Route path="/book/:creatorId" element={<PrivateRoute><BookingForm /></PrivateRoute>} />
           <Route path="/booking/:creatorId" element={<BookingForm />} />
-
           <Route path="/booking/confirm" element={<PrivateRoute><BookingConfirm /></PrivateRoute>} />
-
-          {/* Rate Card Route */}
           <Route path="/ratecard/:id" element={<PrivateRoute><RateCard /></PrivateRoute>} />
 
-          {/* Dashboards */}
           <Route path="/creator-dashboard" element={<PrivateRoute><CreatorDashboard /></PrivateRoute>} />
           <Route path="/client-dashboard" element={<PrivateRoute><ClientDashboard /></PrivateRoute>} />
 
-          {/* Profile and Calendar */}
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/calendar" element={<PrivateRoute><Calendar /></PrivateRoute>} />
 
           <Route path="*" element={<div className="text-center text-red-500 text-xl">Page not found</div>} />
-
         </Routes>
       </motion.main>
 
       <footer className="bg-gray-800 text-white text-center py-4">
         <p>
-          © 2025 Artify | <a href="/pricing" className="text-blue-300 hover:underline">Subscribe</a> |
+          © 2025 Artify | <a href="/pricing" className="text-blue-300 hover:underline">Subscribe</a> | 
           Contact: <a href="mailto:info@artify.com" className="hover:underline">info@artify.com</a>
         </p>
       </footer>

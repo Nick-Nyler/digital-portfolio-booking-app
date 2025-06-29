@@ -28,10 +28,8 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     role = db.Column(db.String(20), default='client')  # 'client', 'creator', 'super_admin'
     bio = db.Column(db.Text)
-    
-    # ✅ Add these two fields
-    skills = db.Column(db.String(255))  # e.g., "Painting, Photography"
-    rate = db.Column(db.Float)         # e.g., 50.0
+    skills = db.Column(db.String(255))
+    rate = db.Column(db.Float)
 
     portfolio_items = db.relationship('PortfolioItem', backref='user', lazy=True)
     bookings = db.relationship('Booking', backref='user', lazy=True, foreign_keys=[Booking.user_id])

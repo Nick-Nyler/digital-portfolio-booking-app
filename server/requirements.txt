@@ -9,3 +9,5 @@ bcrypt==4.1.2
 SQLAlchemy==2.0.30
 PyJWT==2.8.0
 sqlalchemy_serializer==1.4.1
+Flask-JWT-Extended==4.5.0   # or whatever the latest 4.x is
+Flask-Mail==0.9.1
