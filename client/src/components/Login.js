@@ -1,9 +1,11 @@
+// src/components/Login.js
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
+import { API_URL } from '../api';
 
 const LoginSchema = Yup.object().shape({
   username: Yup.string().required('Required').min(3, 'Too short'),
@@ -14,7 +16,7 @@ function Login({ setIsAuthenticated }) {
   const navigate = useNavigate();
 
   const handleSubmit = (values, { setSubmitting }) => {
-    fetch('https://artify-api-pkxy.onrender.com/auth', {
+    fetch(`${API_URL}/auth`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),

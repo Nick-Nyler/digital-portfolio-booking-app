@@ -1,44 +1,56 @@
 // src/components/CreatorDashboard.js
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { API_URL } from '../api';
 
 function CreatorDashboard() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({ bio: '', skills: '', rate: '' });
+  const token = localStorage.getItem('token');
+
+  // ← Back button
+  const handleBack = () => navigate(-1);
 
   // ── Fetch Creator Profile ─────────────────────
-  const { data: profile, isLoading: profileLoading, isError: profileError } = useQuery({
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    isError: profileError
+  } = useQuery({
     queryKey: ['creatorProfile'],
     queryFn: () =>
-      fetch('https://artify-api-pkxy.onrender.com/users', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      }).then((res) => {
+      fetch(`${API_URL}/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(res => {
         if (!res.ok) throw new Error('Failed to fetch profile');
         return res.json();
       }),
-    enabled: !!localStorage.getItem('token'),
-    onSuccess: (data) => {
+    enabled: !!token,
+    onSuccess: data => {
       setFormData({
         bio: data.bio || '',
         skills: data.skills || '',
-        rate: data.rate || '',
+        rate: data.rate || ''
       });
-    },
+    }
   });
 
   // ── Fetch Creator Bookings ─────────────────────
-  const { data: bookingsRaw, isLoading: bookingsLoading, isError: bookingsError } = useQuery({
+  const {
+    data: bookingsRaw,
+    isLoading: bookingsLoading,
+    isError: bookingsError
+  } = useQuery({
     queryKey: ['creatorBookings'],
     queryFn: () =>
-      fetch('https://artify-api-pkxy.onrender.com/bookings', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      }).then((res) => {
+      fetch(`${API_URL}/bookings`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(res => {
         if (!res.ok) throw new Error('Failed to fetch bookings');
         return res.json();
       }),
@@ -46,46 +58,46 @@ function CreatorDashboard() {
   const bookings = Array.isArray(bookingsRaw) ? bookingsRaw : [];
 
   // ── Handle Profile Input ─────────────────────
-  const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = e => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   // ── Update Creator Profile ─────────────────────
   const updateMutation = useMutation({
     mutationFn: () =>
-      axios.put(`https://artify-api-pkxy.onrender.com/users/${profile?.id}`, formData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      }),
+      axios.put(
+        `${API_URL}/users/${profile?.id}`,
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      ),
     onSuccess: () => {
       toast.success('Profile updated!');
       queryClient.invalidateQueries(['creatorProfile']);
     },
-    onError: (err) => {
+    onError: err => {
       toast.error(`Update failed: ${err.response?.data?.message || err.message}`);
-    },
+    }
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     e.preventDefault();
     if (!profile?.id) return toast.error('No user ID found');
     updateMutation.mutate();
   };
 
   // ── Handle Booking Status ─────────────────────
-  const handleStatusUpdate = (bookingId, newStatus) => {
-    axios
-      .patch(
-        `https://artify-api-pkxy.onrender.com/bookings/${bookingId}`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      )
-      .then(() => {
-        toast.success(`Booking ${newStatus}`);
-        queryClient.invalidateQueries(['creatorBookings']);
-      })
-      .catch(() => toast.error('Failed to update booking status'));
+  const handleStatusUpdate = (id, status) => {
+    axios.patch(
+      `${API_URL}/bookings/${id}`,
+      { status },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    .then(() => {
+      toast.success(`Booking ${status}`);
+      queryClient.invalidateQueries(['creatorBookings']);
+    })
+    .catch(() => toast.error('Failed to update booking status'));
   };
 
   // ── Loading / Error ─────────────────────
@@ -94,6 +106,14 @@ function CreatorDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8 text-white">
+      {/* ← Back */}
+      <button
+        onClick={handleBack}
+        className="mb-6 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
+      >
+        ← Back
+      </button>
+
       <h2 className="text-3xl font-bold mb-6">Creator Dashboard</h2>
 
       {/* ── Profile Edit Form ───────────────────── */}
@@ -138,7 +158,7 @@ function CreatorDashboard() {
         {bookings.length === 0 ? (
           <p className="text-gray-300">No bookings yet.</p>
         ) : (
-          bookings.map((b) => (
+          bookings.map(b => (
             <div key={b.id} className="bg-white/10 backdrop-blur-md p-4 rounded-lg mb-3">
               <p><strong>Date:</strong> {b.date}</p>
               <p><strong>Time:</strong> {b.time}</p>

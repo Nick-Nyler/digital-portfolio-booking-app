@@ -1,16 +1,26 @@
+// src/components/Creators.js
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { API_URL } from '../api';
 
 function Creators() {
+  const token = localStorage.getItem('token');
+
   const { data: creators = [], isLoading, error } = useQuery({
     queryKey: ['creators'],
-    queryFn: () => fetch('https://artify-api-pkxy.onrender.com/users').then(res => res.json()),
+    queryFn: () =>
+      fetch(`${API_URL}/users?role=creator`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then(res => {
+        if (!res.ok) throw new Error('Failed to fetch creators');
+        return res.json();
+      }),
     retry: 1,
   });
 
   if (isLoading) return <p className="text-center">Loading...</p>;
-  if (error) return <p className="text-center text-red-300">Error: {error.message}</p>;
+  if (error)    return <p className="text-center text-red-300">Error: {error.message}</p>;
 
   return (
     <motion.div

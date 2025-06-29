@@ -1,25 +1,36 @@
+// src/components/Home.js
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { API_URL } from '../api';
 
 function Home() {
   const { data: portfolioItems = [], isLoading, error } = useQuery({
     queryKey: ['portfolioItems'],
-    queryFn: () => fetch('https://artify-api-pkxy.onrender.com/portfolio-items').then(res => res.json()),
+    queryFn: () =>
+      fetch(`${API_URL}/public-portfolio-items`)
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch portfolio items');
+          return res.json();
+        }),
     retry: 1,
   });
+
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [rating, setRating] = useState(0);
 
-  const filteredItems = Array.isArray(portfolioItems) ? portfolioItems.filter(item =>
-    item.title.toLowerCase().includes(search.toLowerCase()) &&
-    (category === '' || item.category === category) &&
-    item.price >= priceRange[0] && item.price <= priceRange[1] &&
-    (!rating || item.rating >= rating)
-  ) : [];
+  const filteredItems = Array.isArray(portfolioItems)
+    ? portfolioItems.filter(item =>
+        item.title.toLowerCase().includes(search.toLowerCase()) &&
+        (category === '' || item.category === category) &&
+        item.price >= priceRange[0] &&
+        item.price <= priceRange[1] &&
+        (!rating || item.rating >= rating)
+      )
+    : [];
 
   return (
     <div className="min-h-screen">
@@ -30,7 +41,9 @@ function Home() {
         className="text-center py-16 bg-gradient-to-b from-purple-800 to-blue-700"
       >
         <h1 className="text-4xl md:text-5xl font-bold mb-4">Welcome to Artify</h1>
-        <p className="text-lg mb-6">Unleash your creativity with stunning portfolios and seamless bookings.</p>
+        <p className="text-lg mb-6">
+          Unleash your creativity with stunning portfolios and seamless bookings.
+        </p>
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
@@ -39,18 +52,19 @@ function Home() {
           Start Creating
         </motion.button>
       </motion.section>
+
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <input
             type="text"
             placeholder="Search by title..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             className="p-2 rounded-lg border border-gray-300 text-black"
           />
           <select
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={e => setCategory(e.target.value)}
             className="p-2 rounded-lg border border-gray-300 text-black"
           >
             <option value="">All Categories</option>
@@ -63,7 +77,7 @@ function Home() {
             min="0"
             max="100"
             value={priceRange[0]}
-            onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
+            onChange={e => setPriceRange([+e.target.value, priceRange[1]])}
             className="p-2 rounded-lg border border-gray-300 text-black"
           />
           <input
@@ -71,12 +85,18 @@ function Home() {
             min="0"
             max="5"
             value={rating}
-            onChange={(e) => setRating(parseInt(e.target.value))}
+            onChange={e => setRating(+e.target.value)}
             className="p-2 rounded-lg border border-gray-300 text-black"
           />
         </div>
+
         {isLoading && <p className="text-center">Loading...</p>}
-        {error && <p className="text-center text-red-300">Error loading items: {error.message}</p>}
+        {error && (
+          <p className="text-center text-red-300">
+            Error loading items: {error.message}
+          </p>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map(item => (
             <motion.div
@@ -84,13 +104,19 @@ function Home() {
               whileHover={{ scale: 1.05, rotate: 1 }}
               className="bg-white/10 backdrop-blur-md rounded-lg overflow-hidden shadow-lg"
             >
-              <Link to={`/portfolio/${item.id}`}>
-                <img src={item.image_url} alt={item.title} className="w-full h-48 object-cover" />
+              <Link to={`/portfolio/${item.id}`} className="block">
+                <img
+                  src={item.image_url}
+                  alt={item.title}
+                  className="w-full h-48 object-cover"
+                />
                 <div className="p-4">
-                  <h3 className="text-xl font-semibold text-white">{item.title}</h3>
+                  <h3 className="text-xl font-semibold text-white">
+                    {item.title}
+                  </h3>
                   <p className="text-gray-300">{item.category}</p>
                   <p>Price: ${item.price}</p>
-                  <p>Rating: {item.rating || 'N/A'}</p>
+                  <p>Rating: {item.rating ?? 'N/A'}</p>
                 </div>
               </Link>
             </motion.div>
@@ -98,7 +124,7 @@ function Home() {
         </div>
       </div>
     </div>
-);
+  );
 }
 
 export default Home;

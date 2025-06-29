@@ -1,9 +1,11 @@
+// src/components/Signup.js
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
+import { API_URL } from '../api';  // ← pull in your API helper
 
 const SignupSchema = Yup.object().shape({
   username: Yup.string()
@@ -25,7 +27,7 @@ function Signup({ setIsAuthenticated }) {
   const navigate = useNavigate();
 
   const handleSubmit = (values, { setSubmitting }) => {
-    fetch('https://artify-api-pkxy.onrender.com/auth', {
+    fetch(`${API_URL}/auth`, {           // ← use API_URL here
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
@@ -33,17 +35,15 @@ function Signup({ setIsAuthenticated }) {
       .then(async (res) => {
         const payload = await res.json();
         if (!res.ok) {
-          // server might return { message: "Username already exists" }
           throw new Error(payload.message || 'Signup failed');
         }
         return payload;
       })
-       .then(() => {
+      .then(() => {
         toast.success('Account created! Please sign in.');
-        navigate('/login');               // ← Redirect to Sign In
+        navigate('/login');
       })
       .catch((error) => {
-        // if username/email not unique, server returns 400 with that message
         toast.error(error.message);
       })
       .finally(() => setSubmitting(false));

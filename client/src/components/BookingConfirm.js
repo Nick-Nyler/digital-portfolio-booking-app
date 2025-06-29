@@ -1,11 +1,14 @@
+// src/components/BookingConfirm.js
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 function BookingConfirm() {
   const { state } = useLocation();
+  const navigate = useNavigate();
 
-  if (!state) return <p className="text-center text-red-300">No booking details available</p>;
+  if (!state) 
+    return <p className="text-center text-red-300">No booking details available</p>;
 
   return (
     <motion.div
@@ -17,7 +20,16 @@ function BookingConfirm() {
       <p className="text-lg mb-2">Date: {state.date}</p>
       <p className="text-lg mb-2">Time: {state.time}</p>
       <p className="text-lg mb-4">Client: {state.clientName}</p>
-      <p className="text-gray-300">Thank you! A creator will contact you soon.</p>
+      <p className="text-gray-300 mb-6">
+        Thank you! A creator will contact you soon.
+      </p>
+
+      <button
+        onClick={() => navigate('/client-dashboard')}
+        className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition"
+      >
+        Back to Dashboard
+      </button>
     </motion.div>
   );
 }
