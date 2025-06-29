@@ -1,17 +1,27 @@
+// src/components/PortfolioItemDetail.js
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
+
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5555';
 
 function PortfolioItemDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:5000/portfolio-items/${id}`)
-      .then(response => response.json())
-      .then(data => setItem(data))
+    fetch(`${API}/public-portfolio-items`)
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch portfolio items');
+        return res.json();
+      })
+      .then(data => {
+        const found = data.find(i => i.id === Number(id));
+        setItem(found || null);
+      })
       .catch(error => console.error('Fetch error:', error))
       .finally(() => setLoading(false));
   }, [id]);
@@ -21,11 +31,26 @@ function PortfolioItemDetail() {
 
   return (
     <div className="detail-container">
-      <img src={item.image_url} alt={item.title} />
-      <h2>{item.title}</h2>
-      <p>{item.description}</p>
-      <p>Category: {item.category}</p>
-      <Link to="/booking">Book a Session</Link>
+      {/* ← Back button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
+      >
+        ← Back
+      </button>
+
+      <img src={item.image_url} alt={item.title} className="w-full max-w-lg mx-auto mb-4" />
+      <h2 className="text-2xl font-bold mb-2">{item.title}</h2>
+      <p className="mb-2">{item.description}</p>
+      <p className="mb-2"><strong>Category:</strong> {item.category}</p>
+
+      <Link
+        to={`/booking/${item.user_id}`}
+        state={{ creatorName: item.creator }}
+        className="inline-block bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
+      >
+        Book a Session
+      </Link>
     </div>
   );
 }

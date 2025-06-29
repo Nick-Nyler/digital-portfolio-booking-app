@@ -1,10 +1,11 @@
 // src/components/ClientDashboard.js
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 function ClientDashboard() {
+  const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
   // Fetch client bookings
@@ -16,7 +17,7 @@ function ClientDashboard() {
       }).then((res) => res.json()),
   });
 
-  // Fetch creators list (only data + loading)
+  // Fetch creators list
   const { data: creatorsData = [], isLoading: creatorsLoading } = useQuery({
     queryKey: ['creators'],
     queryFn: () =>
@@ -40,9 +41,16 @@ function ClientDashboard() {
     );
   }
 
-  // bookingsData & creatorsData are arrays thanks to default values
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* ← Back button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-6 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
+      >
+        ← Back
+      </button>
+
       <h2 className="text-3xl font-bold mb-6">Client Dashboard</h2>
 
       {/* --- Bookings Section --- */}
@@ -85,14 +93,14 @@ function ClientDashboard() {
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link
                   to={`/portfolio/${creator.id}`}
-                  className="bg-purple-500 text-white px-4 py-1 rounded hover:bg-purple-600"
+                  className="bg-purple-500 text-white px-4 py-1 rounded hover:bg-purple-600 transition"
                 >
                   View Portfolio
                 </Link>
                 <Link
                   to={`/booking/${creator.id}`}
                   state={{ creatorName: creator.username }}
-                  className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600"
+                  className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600 transition"
                 >
                   Book Now
                 </Link>
