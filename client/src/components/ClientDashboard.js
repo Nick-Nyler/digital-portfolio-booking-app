@@ -9,7 +9,7 @@ function ClientDashboard() {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
-  // ── Fetch client bookings ───────────────────────────────
+  // Fetch client bookings
   const {
     data: bookingsData = [],
     isLoading: bookingsLoading,
@@ -25,7 +25,7 @@ function ClientDashboard() {
       }),
   });
 
-  // ── Fetch creators list ─────────────────────────────────
+  // Fetch creators list
   const {
     data: creatorsData = [],
     isLoading: creatorsLoading,

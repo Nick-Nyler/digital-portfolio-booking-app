@@ -1,39 +1,41 @@
-# Dependencies
-node_modules/
-.pipenv/
+# === Python / Flask backend ===
 *.pyc
 __pycache__/
-
-# Virtual environments
+instance/
 .env
+.env.*
+.vscode/
+.mypy_cache/
+.pytest_cache/
+db.sqlite3
+*.sqlite3
+*.db
+# Flask-migrate (alembic) can create big log files
+migrations/versions/*.pyc
+
+# === Virtual Envs ===
 venv/
 .venv/
+ENV/
+env/
+.Python
 
-# Build and deployment
-build/
-dist/
-*.log
-*.sqlite3
+# === Node / React frontend ===
+client/node_modules/
+client/build/
+client/.env
+client/.env.*
 
-# OS generated files
+# === Mac & OS cruft ===
 .DS_Store
 Thumbs.db
 
-# IDE and editor files
+# === Logs ===
+*.log
+
+# === Editor crap ===
 .idea/
-.vscode/
-*.sublime-workspace
-*.sublime-project
+*.swp
 
-# Server instance
-server/instance/
-
-# Local configuration
-config.py
-*.env
-
-# React build artifacts
-client/build/
-
-# Pipfile.lock (optional, if you want to regenerate it per environment)
-# Pipfile.lock
+# === Misc ===
+*.bak
