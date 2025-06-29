@@ -1,16 +1,18 @@
 // src/components/NavBar.js
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 
 function NavBar({ isAuthenticated, setIsAuthenticated }) {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const role = localStorage.getItem('role') // grab role
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    navigate('/'); // redirect home on logout
-  };
+    localStorage.removeItem('token')
+    localStorage.removeItem('role')
+    setIsAuthenticated(false)
+    navigate('/')
+  }
 
   return (
     <motion.nav
@@ -30,20 +32,25 @@ function NavBar({ isAuthenticated, setIsAuthenticated }) {
           <Link to="/pricing" className="text-white hover:text-orange-300 transition">
             Pricing
           </Link>
+
           {isAuthenticated ? (
             <>
-              <Link
-                to="/creator-dashboard"
-                className="text-white hover:text-orange-300 transition"
-              >
-                Creator Dashboard
-              </Link>
-              <Link
-                to="/client-dashboard"
-                className="text-white hover:text-orange-300 transition"
-              >
-                Client Dashboard
-              </Link>
+              {role === 'creator' && (
+                <Link
+                  to="/creator-dashboard"
+                  className="text-white hover:text-orange-300 transition"
+                >
+                  Creator Dashboard
+                </Link>
+              )}
+              {role === 'client' && (
+                <Link
+                  to="/client-dashboard"
+                  className="text-white hover:text-orange-300 transition"
+                >
+                  Client Dashboard
+                </Link>
+              )}
               <button
                 onClick={handleLogout}
                 className="text-white hover:text-orange-300 transition"
@@ -64,7 +71,7 @@ function NavBar({ isAuthenticated, setIsAuthenticated }) {
         </div>
       </div>
     </motion.nav>
-  );
+  )
 }
 
-export default NavBar;
+export default NavBar
