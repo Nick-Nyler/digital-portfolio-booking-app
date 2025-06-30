@@ -1,5 +1,6 @@
 # server/app.py
 
+import os
 from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
@@ -18,10 +19,24 @@ from models import PortfolioItem, Booking, User
 
 api = Api(app)
 jwt = JWTManager(app)
-CORS(app, resources={r"/*": {"origins": "*"}},
-     expose_headers=["Authorization"],
-     allow_headers=["Content-Type", "Authorization"],
-     supports_credentials=True)
+
+# Enable CORS for every route, including preflight
+CORS(
+    app,
+    resources={r"/*": {"origins": "*"}},
+    expose_headers=["Authorization"],
+    allow_headers=["Content-Type", "Authorization"],
+    supports_credentials=True
+)
+
+# Fallback in case some route doesn’t pick it up
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"]  = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+    return response
+
 mail = Mail(app)
 app.config.update(
     MAIL_SERVER='smtp.gmail.com',
@@ -31,6 +46,7 @@ app.config.update(
     MAIL_PASSWORD='your-app-password',
     MAIL_DEFAULT_SENDER='your-email@gmail.com',
 )
+
 migrate = Migrate(app, db)
 
 # ─── ROUTES ────────────────────────────────────────────────────────────────────
