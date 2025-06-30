@@ -1,8 +1,8 @@
 // src/components/PortfolioDetail.js
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { API_URL } from '../api';   // ← import your API_URL helper
+import { API_URL } from '../api';
 
 function PortfolioDetail() {
   const navigate = useNavigate();
@@ -26,6 +26,15 @@ function PortfolioDetail() {
       .finally(() => setLoading(false));
   }, [creatorId]);
 
+  const handleBookClick = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login?role=client');
+    } else {
+      navigate(`/book/${creatorId}`);
+    }
+  };
+
   if (loading) return <p className="text-center">Loading portfolio…</p>;
   if (error)   return <p className="text-center text-red-300">Error loading portfolio items.</p>;
   if (!items.length) return <p className="text-center">No portfolio items found for this creator.</p>;
@@ -43,7 +52,7 @@ function PortfolioDetail() {
       <motion.h2
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="text-3xl font-bold mb-6 text-center"
+        className="text-3xl font-bold mb-6 text-center text-white"
       >
         Creator’s Portfolio
       </motion.h2>
@@ -60,19 +69,18 @@ function PortfolioDetail() {
               alt={item.title}
               className="w-full h-48 object-cover"
             />
-            <div className="p-4">
-              <h3 className="text-xl font-semibold text-white">{item.title}</h3>
+            <div className="p-4 text-white">
+              <h3 className="text-xl font-semibold">{item.title}</h3>
               <p className="text-gray-300">{item.category}</p>
               <p>Price: ${item.price}</p>
               <p>Rating: {item.rating || 'N/A'}</p>
 
-              <Link
-                to={`/booking/${item.user_id}`}
-                state={{ creatorName: item.creator }}
-                className="mt-3 inline-block bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
+              <button
+                onClick={handleBookClick}
+                className="mt-3 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
               >
                 Book This Creator
-              </Link>
+              </button>
             </div>
           </motion.div>
         ))}

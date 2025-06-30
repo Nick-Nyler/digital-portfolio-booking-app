@@ -8,12 +8,26 @@ import { API_URL } from '../api';
 function Home() {
   const { data: portfolioItems = [], isLoading, error } = useQuery({
     queryKey: ['portfolioItems'],
-    queryFn: () =>
-      fetch(`${API_URL}/public-portfolio-items`)
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch portfolio items');
-          return res.json();
-        }),
+    queryFn: async () => {
+      // Fetch public items first
+      const publicRes = await fetch(`${API_URL}/public-portfolio-items`);
+      if (!publicRes.ok) throw new Error('Failed to fetch public portfolio items');
+      const publicItems = await publicRes.json();
+
+      // Attempt to fetch creator's own items if logged in
+      const token = localStorage.getItem('token');
+      if (!token) return publicItems;
+      try {
+        const privateRes = await fetch(`${API_URL}/portfolio-items`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!privateRes.ok) return publicItems;
+        const privateItems = await privateRes.json();
+        return [...publicItems, ...privateItems];
+      } catch {
+        return publicItems;
+      }
+    },
     retry: 1,
   });
 
@@ -22,15 +36,13 @@ function Home() {
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [rating, setRating] = useState(0);
 
-  const filteredItems = Array.isArray(portfolioItems)
-    ? portfolioItems.filter(item =>
-        item.title.toLowerCase().includes(search.toLowerCase()) &&
-        (category === '' || item.category === category) &&
-        item.price >= priceRange[0] &&
-        item.price <= priceRange[1] &&
-        (!rating || item.rating >= rating)
-      )
-    : [];
+  const filteredItems = portfolioItems.filter(item =>
+    item.title.toLowerCase().includes(search.toLowerCase()) &&
+    (category === '' || item.category === category) &&
+    item.price >= priceRange[0] &&
+    item.price <= priceRange[1] &&
+    (!rating || item.rating >= rating)
+  );
 
   return (
     <div className="min-h-screen">
@@ -44,13 +56,15 @@ function Home() {
         <p className="text-lg mb-6">
           Unleash your creativity with stunning portfolios and seamless bookings.
         </p>
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-orange-600 transition"
-        >
-          Start Creating
-        </motion.button>
+        <Link to="/signup?role=creator">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-orange-600 transition"
+          >
+            Start Creating
+          </motion.button>
+        </Link>
       </motion.section>
 
       <div className="container mx-auto px-4 py-8">
@@ -90,7 +104,7 @@ function Home() {
           />
         </div>
 
-        {isLoading && <p className="text-center">Loading...</p>}
+        {isLoading && <p className="text-center text-white">Loading...</p>}
         {error && (
           <p className="text-center text-red-300">
             Error loading items: {error.message}
@@ -110,8 +124,8 @@ function Home() {
                   alt={item.title}
                   className="w-full h-48 object-cover"
                 />
-                <div className="p-4">
-                  <h3 className="text-xl font-semibold text-white">
+                <div className="p-4 text-white">
+                  <h3 className="text-xl font-semibold">
                     {item.title}
                   </h3>
                   <p className="text-gray-300">{item.category}</p>

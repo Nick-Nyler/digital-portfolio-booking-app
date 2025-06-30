@@ -15,6 +15,7 @@ import Pricing from './components/Pricing';
 import Profile from './components/Profile';
 import Calendar from './components/Calendar';
 import RateCard from './components/RateCard';
+import PortfolioForm from './components/PortfolioForm';  // ← added
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -45,13 +46,34 @@ function App() {
           <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/signup" element={<Signup setIsAuthenticated={setIsAuthenticated} />} />
 
-          <Route path="/book/:creatorId" element={<PrivateRoute><BookingForm /></PrivateRoute>} />
+          <Route
+            path="/book/:creatorId"
+            element={<PrivateRoute><BookingForm /></PrivateRoute>}
+          />
           <Route path="/booking/:creatorId" element={<BookingForm />} />
-          <Route path="/booking/confirm" element={<PrivateRoute><BookingConfirm /></PrivateRoute>} />
-          <Route path="/ratecard/:id" element={<PrivateRoute><RateCard /></PrivateRoute>} />
+          <Route
+            path="/booking/confirm"
+            element={<PrivateRoute><BookingConfirm /></PrivateRoute>}
+          />
+          <Route
+            path="/ratecard/:id"
+            element={<PrivateRoute><RateCard /></PrivateRoute>}
+          />
 
-          <Route path="/creator-dashboard" element={<PrivateRoute><CreatorDashboard /></PrivateRoute>} />
-          <Route path="/client-dashboard" element={<PrivateRoute><ClientDashboard /></PrivateRoute>} />
+          {/* NEW: Creator add-portfolio route */}
+          <Route
+            path="/creator/add-portfolio"
+            element={<PrivateRoute><PortfolioForm /></PrivateRoute>}
+          />
+
+          <Route
+            path="/creator-dashboard"
+            element={<PrivateRoute><CreatorDashboard /></PrivateRoute>}
+          />
+          <Route
+            path="/client-dashboard"
+            element={<PrivateRoute><ClientDashboard /></PrivateRoute>}
+          />
 
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/calendar" element={<PrivateRoute><Calendar /></PrivateRoute>} />

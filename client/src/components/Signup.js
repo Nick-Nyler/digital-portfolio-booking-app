@@ -1,11 +1,11 @@
 // src/components/Signup.js
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
-import { API_URL } from '../api';  // ← pull in your API helper
+import { API_URL } from '../api';
 
 const SignupSchema = Yup.object().shape({
   username: Yup.string()
@@ -25,9 +25,11 @@ const SignupSchema = Yup.object().shape({
 
 function Signup({ setIsAuthenticated }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultRole = searchParams.get('role') || '';
 
   const handleSubmit = (values, { setSubmitting }) => {
-    fetch(`${API_URL}/auth`, {           // ← use API_URL here
+    fetch(`${API_URL}/auth`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
@@ -57,7 +59,12 @@ function Signup({ setIsAuthenticated }) {
     >
       <h2 className="text-3xl font-bold mb-6 text-center">Sign Up</h2>
       <Formik
-        initialValues={{ username: '', email: '', password: '', role: '' }}
+        initialValues={{
+          username: '',
+          email: '',
+          password: '',
+          role: defaultRole,
+        }}
         validationSchema={SignupSchema}
         onSubmit={handleSubmit}
       >
@@ -143,7 +150,7 @@ function Signup({ setIsAuthenticated }) {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Sign Up
+              {isSubmitting ? 'Signing Up…' : 'Sign Up'}
             </motion.button>
           </Form>
         )}

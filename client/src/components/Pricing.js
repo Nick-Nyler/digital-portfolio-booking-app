@@ -1,48 +1,59 @@
+// src/components/Pricing.js
 import React from 'react';
 import { motion } from 'framer-motion';
 
+const feeTiers = [
+  {
+    id: 'creators',
+    title: 'Creators (Sellers)',
+    details: [
+      '20% flat fee on every booking',
+      'Tiered discount: 15% on first $500 earned, 10% thereafter',
+    ],
+  },
+  {
+    id: 'clients',
+    title: 'Clients (Buyers)',
+    details: [
+      '5% service fee on every booking total',
+      'Flat $3 fee on bookings under $100',
+    ],
+  },
+];
+
 function Pricing() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="container mx-auto px-4 py-8 text-center"
-    >
-      <h2 className="text-3xl font-bold mb-6">Pricing Plans</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="bg-white/20 backdrop-blur-md p-6 rounded-lg"
-        >
-          <h3 className="text-xl font-semibold mb-2">Basic</h3>
-          <p className="text-2xl mb-4">$5/month</p>
-          <ul className="text-left text-gray-300">
-            <li>5 Portfolio Items</li>
-            <li>Basic Booking</li>
-          </ul>
-        </motion.div>
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="bg-white/20 backdrop-blur-md p-6 rounded-lg"
-        >
-          <h3 className="text-xl font-semibold mb-2">Pro</h3>
-          <p className="text-2xl mb-4">$15/month</p>
-          <ul className="text-left text-gray-300">
-            <li>Unlimited Items</li>
-            <li>Analytics</li>
-            <li>Priority Support</li>
-          </ul>
-        </motion.div>
-      </div>
-      <motion.a
-        href="mailto:info@artify.com?subject=Subscription Inquiry"
-        className="mt-6 inline-block bg-orange-500 text-white px-6 py-3 rounded-full hover:bg-orange-600 transition"
-        whileHover={{ scale: 1.05 }}
+    <div className="min-h-screen">
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-center py-16 bg-gradient-to-b from-purple-800 to-blue-700"
       >
-        Contact for Subscription
-      </motion.a>
-    </motion.div>
+        <h1 className="text-4xl font-bold text-white mb-8">Fee Structure</h1>
+        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+          {feeTiers.map((tier) => (
+            <motion.div
+              key={tier.id}
+              whileHover={{ scale: 1.03 }}
+              className="bg-white/20 backdrop-blur-md rounded-lg p-8 flex flex-col"
+            >
+              <h2 className="text-2xl font-semibold text-white mb-4">{tier.title}</h2>
+              <ul className="text-white text-left list-disc pl-5 mb-6">
+                {tier.details.map((d, idx) => (
+                  <li key={idx}>{d}</li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
+        </div>
+        <p className="mt-12 text-white">
+          Transparent, competitive fees so you know exactly what you pay.
+        </p>
+      </motion.section>
+    </div>
   );
 }
 
 export default Pricing;
+ 

@@ -116,6 +116,16 @@ function CreatorDashboard() {
 
       <h2 className="text-3xl font-bold mb-6">Creator Dashboard</h2>
 
+      {/* ── Add Portfolio CTA ───────────────────── */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-6 text-right">
+        <Link
+          to="/creator/add-portfolio"
+          className="inline-block bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
+        >
+          Add Portfolio Item
+        </Link>
+      </motion.div>
+
       {/* ── Profile Edit Form ───────────────────── */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
         <h3 className="text-2xl font-semibold mb-4">Your Profile</h3>
