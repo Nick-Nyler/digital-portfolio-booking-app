@@ -16,19 +16,12 @@ from models import PortfolioItem, Booking, User
 
 # ─── EXTENSIONS SETUP ─────────────────────────────────────────────────────────
 
-# RESTful API
 api = Api(app)
-
-# JWT
 jwt = JWTManager(app)
-
-# CORS (allow all origins for dev)
-CORS(app, resources={r"/*": {"origins": "*"}}, 
-     expose_headers=["Authorization"], 
-     allow_headers=["Content-Type", "Authorization"], 
+CORS(app, resources={r"/*": {"origins": "*"}},
+     expose_headers=["Authorization"],
+     allow_headers=["Content-Type", "Authorization"],
      supports_credentials=True)
-
-# Mail
 mail = Mail(app)
 app.config.update(
     MAIL_SERVER='smtp.gmail.com',
@@ -38,8 +31,6 @@ app.config.update(
     MAIL_PASSWORD='your-app-password',
     MAIL_DEFAULT_SENDER='your-email@gmail.com',
 )
-
-# Migrations
 migrate = Migrate(app, db)
 
 # ─── ROUTES ────────────────────────────────────────────────────────────────────
@@ -212,17 +203,20 @@ class PortfolioItemResource(Resource):
 class PublicPortfolioItems(Resource):
     def get(self):
         items = PortfolioItem.query.all()
-        return [{
-            "id": it.id,
-            "title": it.title,
-            "image_url": it.image_url,
-            "description": it.description,
-            "category": it.category,
-            "price": it.price,
-            "rating": it.rating,
-            "user_id": it.user_id,
-            "creator": it.user.username if it.user else "Unknown"
-        } for it in items], 200
+        return jsonify([
+            {
+                "id": it.id,
+                "title": it.title,
+                "image_url": it.image_url,
+                "description": it.description,
+                "category": it.category,
+                "price": it.price,
+                "rating": it.rating,
+                "user_id": it.user_id,
+                "creator": it.user.username if it.user else "Unknown"
+            }
+            for it in items
+        ])
 
 # -- Booking Resource --
 class BookingResource(Resource):
@@ -298,7 +292,7 @@ class ReviewResource(Resource):
         db.session.commit()
         return {"message": "Review added"}, 200
 
-# Register your resources
+# Register all resources
 api.add_resource(UserResource, '/users', '/users/<int:id>')
 api.add_resource(PortfolioItemResource, '/portfolio-items', '/portfolio-items/<int:id>')
 api.add_resource(PublicPortfolioItems, '/public-portfolio-items')

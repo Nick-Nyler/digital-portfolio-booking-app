@@ -9,12 +9,10 @@ function Home() {
   const { data: portfolioItems = [], isLoading, error } = useQuery({
     queryKey: ['portfolioItems'],
     queryFn: async () => {
-      // Fetch public items first
       const publicRes = await fetch(`${API_URL}/public-portfolio-items`);
-      if (!publicRes.ok) throw new Error('Failed to fetch public portfolio items');
+      if (!publicRes.ok) throw new Error('Fetch failed');
       const publicItems = await publicRes.json();
 
-      // Attempt to fetch creator's own items if logged in
       const token = localStorage.getItem('token');
       if (!token) return publicItems;
       try {
@@ -33,14 +31,11 @@ function Home() {
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
-  const [priceRange, setPriceRange] = useState([0, 100]);
   const [rating, setRating] = useState(0);
 
   const filteredItems = portfolioItems.filter(item =>
     item.title.toLowerCase().includes(search.toLowerCase()) &&
     (category === '' || item.category === category) &&
-    item.price >= priceRange[0] &&
-    item.price <= priceRange[1] &&
     (!rating || item.rating >= rating)
   );
 
@@ -89,18 +84,11 @@ function Home() {
           <input
             type="range"
             min="0"
-            max="100"
-            value={priceRange[0]}
-            onChange={e => setPriceRange([+e.target.value, priceRange[1]])}
-            className="p-2 rounded-lg border border-gray-300 text-black"
-          />
-          <input
-            type="range"
-            min="0"
             max="5"
             value={rating}
             onChange={e => setRating(+e.target.value)}
             className="p-2 rounded-lg border border-gray-300 text-black"
+            title="Minimum rating"
           />
         </div>
 
@@ -125,9 +113,7 @@ function Home() {
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-4 text-white">
-                  <h3 className="text-xl font-semibold">
-                    {item.title}
-                  </h3>
+                  <h3 className="text-xl font-semibold">{item.title}</h3>
                   <p className="text-gray-300">{item.category}</p>
                   <p>Price: ${item.price}</p>
                   <p>Rating: {item.rating ?? 'N/A'}</p>
